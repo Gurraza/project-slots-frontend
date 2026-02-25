@@ -133,13 +133,29 @@ export class Reel {
         this.symbolsRotated = 0
         this.stopSymbols = stopSymbols
 
-        gsap.to(this, {
-            speed: this.config.spinSpeed,
-            duration: this.config.spinAcceleration,
+        // gsap.to(this, {
+        //     speed: this.config.spinSpeed,
+        //     duration: .4,//this.config.spinAcceleration,
+        //     delay: this.config.staggerTime * this.index,
+        //     ease: "back.in(3)",
+        //     onStart: () => { this.state = "SPINNING"; }
+        // })
+        gsap.to(this.symbols, {
+            y: `-=${this.config.windup.pixels}`,
+            duration: this.config.windup.time,
             delay: this.config.staggerTime * this.index,
-            ease: "back.in(1.5)",
-            onStart: () => { this.state = "SPINNING"; }
-        })
+            ease: this.config.windup.ease,
+            onComplete: () => {
+                this.state = "SPINNING";
+
+                // 2. Acceleration Phase (ramp up speed)
+                gsap.to(this, {
+                    speed: this.config.spinSpeed,
+                    duration: this.config.spinAcceleration,
+                    ease: "power2.in"
+                });
+            }
+        });
 
         return new Promise((resolve) => {
             this.resolveSpin = resolve;
@@ -159,12 +175,8 @@ export class Reel {
         sortedSymbols.forEach((symbol, index) => {
             const destY = ((index - 1) * this.slotHeight) + (this.config.symbolHeight / 2);
 
-            gsap.to(symbol, {
-                y: destY,
-                duration: this.config.spinDeacceleration, // Reduced duration for a heavier, more mechanical slot feel
-                ease: "back.in", // Provides the overshoot and bounce
+            const tl = gsap.timeline({
                 onComplete: () => {
-                    // Restrict resolution to the final symbol in the array to prevent multiple calls
                     if (index === sortedSymbols.length - 1) {
                         this.state = "IDLE";
                         this.snapToGrid()
@@ -175,11 +187,82 @@ export class Reel {
                         }
                     }
                 }
-            });
+            })
+
+            // 1. Deceleration Phase (slow down to target)
+            tl.to(symbol, {
+                y: destY + this.config.bounce.pixels,
+                duration: this.config.spinDeacceleration,
+                ease: "power1.out"
+            })
+                // 3. Bounce Up Phase (return to resting position)
+                .to(symbol, {
+                    y: destY,
+                    duration: 0.15, // Short duration for snap back
+                    ease: "power1.in"
+                });
         });
     }
 
     private getSorted(): ReelSymbol[] {
         return [...this.symbols].sort((a, b) => a.y - b.y)
+    }
+
+    public async explodeAndCascade(indecies: number[], replaceIds: number[]): Promise<void> {
+        // 1. Sort ascending (top to bottom) to map physical rows to array indices
+        const sorted = this.getSorted();
+
+        const exploded: ReelSymbol[] = []
+        const surviving: ReelSymbol[] = []
+
+        for (let i = 0; i < this.config.rows + 1; i++) {
+            if (indecies.includes(i)) {
+                exploded.push(sorted[i + 1])
+            }
+            else {
+                surviving.push(sorted[i + 1])
+            }
+        }
+
+        // 3. (Optional) Await explosion visual effects here
+        // await this.playExplodeEffects(exploded);
+
+        // 4. Update data and pre-position the exploded symbols at the top
+        exploded.forEach((symbol, i) => {
+            symbol.changeSymbolState(replaceIds[i]);
+            // Move above the top visible slot
+            symbol.y = -this.slotHeight * (i + 1) + (this.config.symbolHeight / 2);
+        });
+
+        // 5. Combine new top symbols with surviving symbols for the final grid layout
+        // New symbols drop to the top rows; surviving symbols keep their relative order
+        const newGridLayout = [...exploded.reverse(), ...surviving]
+
+        // 6. Tween all symbols to their new calculated resting Y positions
+        const dropPromises = newGridLayout.map((symbol, rowIndex) => {
+            const destY = ((rowIndex) * this.slotHeight) + this.config.symbolHeight / 2
+            const distance = Math.abs(destY - symbol.y);
+
+            // Skip animation for symbols that are already in their correct position
+            if (distance === 0) {
+                return Promise.resolve();
+            }
+
+            // Time = Distance / Speed
+            const calculatedDuration = distance / this.config.dropSpeed!
+
+            return new Promise<void>(resolve => {
+                gsap.to(symbol, {
+                    y: destY,
+                    duration: calculatedDuration,
+                    ease: "linear",
+                    delay: .5,
+                    onComplete: resolve
+                });
+            });
+        });
+
+        await Promise.all(dropPromises);
+        this.snapToGrid();
     }
 }

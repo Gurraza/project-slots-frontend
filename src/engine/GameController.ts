@@ -8,12 +8,13 @@ import { featureRegistry } from './features/FeatureRegistry.ts';
 
 export class GameController {
     public config: GameConfig
-    private gameState: GameState
     public gameContainer: Container
-    private reels: Reel[] = []
+    public stage: Container
+    public reels: Reel[] = []
+
+    private gameState: GameState
     private ui: UI
     private bg: Sprite
-    public stage: Container
     constructor(app: Application, config: GameConfig) {
         this.config = config;
 
@@ -24,10 +25,6 @@ export class GameController {
         this.gameState = {
             config: config,
             grid: this.getInitialGrid(),
-            timeline: [{ "type": "SPIN_START", "grid": [[2, 4, 6], [6, 7, 4], [5, 6, 7], [5, 7, 1], [6, 1, 6]], "win": 0, "totalWin": 0, "meta": null }, { "type": "TRANSFORM_FEATURE", "grid": [[2, 4, 6], [7, 7, 7], [7, 7, 7], [7, 7, 7], [6, 1, 6]], "win": 0, "totalWin": 0, "meta": { "newId": 7, "positions": [{ "x": 1, "y": 0 }, { "x": 1, "y": 2 }, { "x": 2, "y": 0 }, { "x": 2, "y": 1 }, { "x": 3, "y": 0 }, { "x": 3, "y": 2 }] } }, { "type": "PAYLINES_FEATURE", "grid": [[2, 4, 6], [7, 7, 7], [7, 7, 7], [7, 7, 7], [6, 1, 6]], "win": 35, "totalWin": 35, "meta": [{ "lineId": 2, "coords": [{ "x": 0, "y": 0 }, { "x": 1, "y": 0 }, { "x": 2, "y": 0 }, { "x": 3, "y": 0 }], "payout": 5, "symbol": "Strawberry", "symbolId": 2, "fullPath": [0, 0, 0, 0, 0] }, { "lineId": 4, "coords": [{ "x": 0, "y": 1 }, { "x": 1, "y": 1 }, { "x": 2, "y": 1 }, { "x": 3, "y": 1 }], "payout": 5, "symbol": "Orange", "symbolId": 4, "fullPath": [1, 1, 1, 1, 1] }, { "lineId": 6, "coords": [{ "x": 0, "y": 2 }, { "x": 1, "y": 2 }, { "x": 2, "y": 2 }, { "x": 3, "y": 2 }, { "x": 4, "y": 2 }], "payout": 10, "symbol": "Bar1", "symbolId": 6, "fullPath": [2, 2, 2, 2, 2] }, { "lineId": 2, "coords": [{ "x": 0, "y": 0 }, { "x": 1, "y": 1 }, { "x": 2, "y": 2 }, { "x": 3, "y": 1 }], "payout": 5, "symbol": "Strawberry", "symbolId": 2, "fullPath": [0, 1, 2, 1, 0] }, { "lineId": 6, "coords": [{ "x": 0, "y": 2 }, { "x": 1, "y": 1 }, { "x": 2, "y": 0 }, { "x": 3, "y": 1 }, { "x": 4, "y": 2 }], "payout": 10, "symbol": "Bar1", "symbolId": 6, "fullPath": [2, 1, 0, 1, 2] }] }],
-            // timeline: [
-            //     { "type": "SPIN_START", "grid": [[6, 7, 3], [6, 4, 3], [4, 4, 1], [1, 2, 7], [2, 1, 2]], "win": 0, "totalWin": 0, "meta": null },
-            //     { "type": "PAYLINES_FEATURE", "grid": [[6, 7, 3], [6, 4, 3], [4, 4, 1], [1, 2, 7], [2, 1, 2]], "win": 2.5, "totalWin": 2.5, "meta": [{ "lineId": 4, "coords": [{ "X": 0, "Y": 1 }, { "X": 1, "Y": 1 }, { "X": 2, "Y": 1 }], "payout": 2.5, "symbol": "Orange", "symbolId": 4, "fullPath": [1, 1, 1, 1, 1] }] }],
             app: app,
             stage: app.stage,
             state: "IDLE",
@@ -35,7 +32,8 @@ export class GameController {
                 const key = type as keyof typeof featureRegistry
                 const f = featureRegistry[key]
                 return new f(this)
-            })
+            }),
+            timeline: null
         }
         this.ui = new UI(this.gameState, this.handleSpinPress)
     }
@@ -47,7 +45,6 @@ export class GameController {
         await this.loadAssets()
         this.setBackground()
         this.buildGrid()
-        this.initializeNetwork()
         this.ui.setup()
     }
 
@@ -100,8 +97,33 @@ export class GameController {
         }
     }
 
-    private initializeNetwork() {
-        // Implementation
+    async fetchTimeline(): Promise<Timeline | undefined> {
+        const currentParams = new URLSearchParams(window.location.search);
+        const seed = currentParams.get('seed');
+        const url = new URL(this.config.endpoints.spin, "http://localhost:8080");
+        if (seed) {
+            url.searchParams.set('seed', seed);
+        }
+        const endpoint = url.toString();
+        console.log(`endpoint ${endpoint}`)
+        try {
+            const response = await fetch(endpoint, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error. Status: ${response.status}`);
+            }
+
+            const rawData = await response.json();
+            return rawData
+
+        } catch (error) {
+            console.error('Failed to fetch timeline data:', error);
+        }
     }
 
     private getInitialGrid(): Grid {
@@ -111,15 +133,16 @@ export class GameController {
         return g
     }
 
-    // private spin(timeline: Timeline) {
-
-    // }
-
     update(delta: number) {
         this.reels.forEach(r => r.update(delta));
     }
 
-    public async play(timeline: Timeline) {
+    public async play() {
+        const timeline = await this.fetchTimeline()
+        if (!timeline) {
+            throw new Error("Something with the api didn't work");
+        }
+        this.gameState.timeline = timeline
         if (this.gameState.state == "ACTIVE") return
         this.gameState.state = "ACTIVE"
         // this.reels.forEach((r) => r.spin([0, 0, 0, 0, 0, 0, 0]))
@@ -142,13 +165,16 @@ export class GameController {
     private async spinReels() {
         const promises: Promise<void>[] = []
         this.reels.forEach((r, i) => {
+            if (!this.gameState.timeline) {
+                throw new Error("No timeline in spinReels");
+
+            }
             promises.push(r.spin(this.gameState.timeline[0].grid[i]))
         })
         await Promise.all(promises)
     }
 
-    private handleSpinPress = async (): Promise<void> => { this.play(this.gameState.timeline) }
-
+    private handleSpinPress = async (): Promise<void> => { this.play() }
 
     public getSymbol(col: number, row: number): ReelSymbol {
         console.log(`col:${col} row:${row}`)

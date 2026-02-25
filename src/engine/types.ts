@@ -2,6 +2,10 @@ import type { Application, Container } from "pixi.js"
 import type { Feature } from "./features/feature"
 
 export type GameConfig = Readonly<{
+    endpoints: {
+        spin: string,
+        init: string
+    }
     title: string
     width: number
     height: number
@@ -23,9 +27,18 @@ export type GameConfig = Readonly<{
     reelSpinMode: "CONTINIOUS" | "DROP_IN_DROP_OUT" | "INVISIBLE_FLY_BY"
     motionBlurStrength: number
     spinSpeed: number
+    dropSpeed?: number
     spinAcceleration: number
     spinDeacceleration: number
     staggerTime: number
+    windup: {
+        pixels: number
+        time: number
+        ease: string
+    }
+    bounce: {
+        pixels: number
+    }
 
     timeBeforeNextEvent: number
     cols: number
@@ -40,7 +53,7 @@ export type GameState = {
     state: "IDLE" | "ACTIVE"
     config: GameConfig
     grid: Grid
-    timeline: Timeline
+    timeline: Timeline | null
     stage: Container
     app: Application
     features: Feature[]

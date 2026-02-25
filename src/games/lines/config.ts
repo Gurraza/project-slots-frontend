@@ -3,6 +3,10 @@ import { type GameConfig } from '../../engine/types.ts';
 
 const config: GameConfig = {
     title: "Clash Of Reels",
+    endpoints: {
+        spin: "/play/lines",
+        init: ""
+    },
     width: 1280,
     height: 720,
     position: {
@@ -40,6 +44,14 @@ const config: GameConfig = {
     spinAcceleration: .5,
     spinDeacceleration: .2,
     staggerTime: .1,
+    windup: {
+        pixels: 0,
+        time: 0,
+        ease: "power1.in"
+    },
+    bounce: {
+        pixels: 0,
+    },
 
     timeBeforeNextEvent: 200,
     cols: 5,

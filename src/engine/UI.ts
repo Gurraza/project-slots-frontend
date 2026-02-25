@@ -12,6 +12,7 @@ export class UI {
         this.gameState = gameState
         this.config = this.gameState.config
         this.uiContainer = new Container()
+        this.uiContainer.zIndex = 100
         this.stage.addChild(this.uiContainer)
         this.handleSpinPress = handleSpinPress
     }

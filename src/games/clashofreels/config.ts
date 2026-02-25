@@ -3,32 +3,36 @@ import { type GameConfig } from '../../engine/types.ts';
 
 const config: GameConfig = {
     title: "Clash Of Reels",
-    width: 720,
-    height: 1280,
-    position: {
-        left: 720 / 2,
-        top: 1280 / 2
+    endpoints: {
+        spin: "/play/clashofreels",
+        init: ""
     },
-    symbolHeight: 80,
-    symbolWidth: 80,
-    gapX: 15,
-    gapY: 15,
+    width: 1280,
+    height: 720,
+    position: {
+        left: 1280 / 2,
+        top: 720 / 2 - 20
+    },
+    symbolHeight: 70,
+    symbolWidth: 90,
+    gapX: 0,
+    gapY: 0,
     background: {
         asset: {
-            src: "/games/clashofreels/clashofreelsbg.png",
+            src: "/games/clashofreels/exp/_0019_Background.png",
             alias: "bg"
         }
     },
     ui: {
         spinButton: {
             asset: {
-                src: "/games/clashofreels/spinbtn.png",
+                src: "/games/clashofreels/exp/_0000_SpinBtnInner.png",
                 alias: "spinbtn",
-                scale: .7
+                scale: 1
             },
             position: {
-                bottom: 100,
-                left: 720 / 2
+                bottom: 60,
+                left: 1280 / 2
             }
         }
     },
@@ -36,24 +40,32 @@ const config: GameConfig = {
     reelSpinMode: "CONTINIOUS",
     motionBlurStrength: 8,
 
-    spinSpeed: 15,
-    spinAcceleration: .5,
-    spinDeacceleration: .5,
+    spinSpeed: 17,
+    spinAcceleration: .25,
+    spinDeacceleration: .25,
     staggerTime: .1,
-
+    windup: {
+        pixels: 10,
+        time: .2,
+        ease: "power2.inOut"
+    },
+    bounce: {
+        pixels: 0,
+    },
+    dropSpeed: 1000,
     timeBeforeNextEvent: 200,
     cols: 7,
     rows: 7,
 
     pathPrefix: "",
     features: [
-        "CLUSTER_FEATURE"
+        "EXPLODE_AND_CASCADE_FEATURE"
     ],
     symbols: [
         {
             id: 0,
             asset: {
-                src: "/games/clashofreels/barbarian.png",
+                src: "/games/clashofreels/exp/_0009_Barbarian.png",
                 alias: "barbarian",
             },
             scale: 1,
@@ -61,7 +73,7 @@ const config: GameConfig = {
         {
             id: 1,
             asset: {
-                src: "/games/clashofreels/archer.png",
+                src: "/games/clashofreels/exp/_0017_Archer.png",
                 alias: "archer",
             },
             scale: 1,
@@ -69,7 +81,7 @@ const config: GameConfig = {
         {
             id: 2,
             asset: {
-                src: "/games/clashofreels/goblin.png",
+                src: "/games/clashofreels/exp/_0013_Goblin.png",
                 alias: "goblin",
             },
             scale: 1,
@@ -77,8 +89,56 @@ const config: GameConfig = {
         {
             id: 3,
             asset: {
-                src: "/games/clashofreels/hogrider.png",
-                alias: "hogrider",
+                src: "/games/clashofreels/exp/_0016_Minion.png",
+                alias: "minion",
+            },
+            scale: 1,
+        },
+        {
+            id: 4,
+            asset: {
+                src: "/games/clashofreels/exp/_0007_Pekka.png",
+                alias: "pekka",
+            },
+            scale: 1,
+        },
+        {
+            id: 5,
+            asset: {
+                src: "/games/clashofreels/exp/_0011_Gem.png",
+                alias: "gem",
+            },
+            scale: 1,
+        },
+        {
+            id: 6,
+            asset: {
+                src: "/games/clashofreels/exp/_0014_Elixir.png",
+                alias: "elixir",
+            },
+            scale: 1,
+        },
+        {
+            id: 7,
+            asset: {
+                src: "/games/clashofreels/exp/_0015_Gold.png",
+                alias: "gold",
+            },
+            scale: 1,
+        },
+        {
+            id: 8,
+            asset: {
+                src: "/games/clashofreels/exp/_0010_Dark_Elixir.png",
+                alias: "darkelixir",
+            },
+            scale: 1,
+        },
+        {
+            id: 9,
+            asset: {
+                src: "/games/clashofreels/exp/_0005_BarbarianKing.png",
+                alias: "barbarianking",
             },
             scale: 1,
         },
