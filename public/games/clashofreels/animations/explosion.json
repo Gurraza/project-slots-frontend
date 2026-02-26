@@ -1,0 +1,21 @@
+{
+    "frames": {
+        "frame0": { "frame": { "x": 0, "y": 0, "w": 300, "h": 300 }, "sourceSize": { "w": 300, "h": 300 } },
+        "frame1": { "frame": { "x": 300, "y": 0, "w": 300, "h": 300 }, "sourceSize": { "w": 300, "h": 300 } },
+        "frame2": { "frame": { "x": 600, "y": 0, "w": 300, "h": 300 }, "sourceSize": { "w": 300, "h": 300 } },
+        "frame3": { "frame": { "x": 900, "y": 0, "w": 300, "h": 300 }, "sourceSize": { "w": 300, "h": 300 } },
+        "frame4": { "frame": { "x": 1200, "y": 0, "w": 300, "h": 300 }, "sourceSize": { "w": 300, "h": 300 } },
+        "frame5": { "frame": { "x": 1500, "y": 0, "w": 300, "h": 300 }, "sourceSize": { "w": 300, "h": 300 } },
+        "frame6": { "frame": { "x": 1800, "y": 0, "w": 300, "h": 300 }, "sourceSize": { "w": 300, "h": 300 } },
+        "frame7": { "frame": { "x": 2100, "y": 0, "w": 300, "h": 300 }, "sourceSize": { "w": 300, "h": 300 } }
+    },
+    "animations": {
+        "main_loop": [ "frame0", "frame1", "frame2", "frame3", "frame4", "frame5", "frame6", "frame7" ]
+    },
+    "meta": {
+        "image": "explosion.png",
+        "format": "RGBA8888",
+        "size": { "w": 2400, "h": 300 },
+        "scale": "2"
+    }
+}

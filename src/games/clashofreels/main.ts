@@ -10,6 +10,7 @@ async function bootstrap() {
 
     const engine = new GameWrapper(container, config);
     await engine.init();
+
 }
 
 bootstrap();

@@ -30,7 +30,10 @@ export type GameConfig = Readonly<{
     dropSpeed?: number
     spinAcceleration: number
     spinDeacceleration: number
-    staggerTime: number
+    staggerTime: {
+        start: number
+        end: number
+    }
     windup: {
         pixels: number
         time: number

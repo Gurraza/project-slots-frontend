@@ -1,10 +1,9 @@
 // src/engine/GameController.ts
 import { Application, Container, Assets, Sprite } from 'pixi.js';
-import { getPos, type Asset, type GameConfig, type GameState, type Grid, type Timeline } from './types.ts';
+import { getPos, type Asset, type GameConfig, type GameState, type Grid, type Position, type Timeline } from './types.ts';
 import { Reel, ReelSymbol } from './Reel.ts';
 import { UI } from './UI.ts';
 import { featureRegistry } from './features/FeatureRegistry.ts';
-
 
 export class GameController {
     public config: GameConfig
@@ -46,6 +45,8 @@ export class GameController {
         this.setBackground()
         this.buildGrid()
         this.ui.setup()
+
+        // playAnimation(.2, this.stage, "/games/clashofreels/animations/meteor.json", { x: 100, y: 100 })
     }
 
     private async loadAssets() {
@@ -70,6 +71,22 @@ export class GameController {
         const texture = Assets.get(bg);
         this.bg.texture = texture;
 
+        // --- VIDEO CONFIGURATION START ---
+        // Compatible with both PixiJS v7 (baseTexture) and v8 (source)
+        const baseSource = texture.source || texture.baseTexture;
+        const videoElement = baseSource?.resource?.source || baseSource?.resource;
+
+        if (videoElement instanceof HTMLVideoElement) {
+            videoElement.loop = true;
+            videoElement.muted = true;       // Mandatory for browser autoplay
+            videoElement.playsInline = true; // Prevents iOS fullscreen takeover
+            videoElement.playbackRate = 1
+            videoElement.play().catch((e) => {
+                console.warn("Video autoplay blocked by browser:", e);
+            });
+        }
+        // --- VIDEO CONFIGURATION END ---
+
         // 1. Calculate scale ratios
         const scaleX = this.config.width / texture.width;
         const scaleY = this.config.height / texture.height;
@@ -85,13 +102,32 @@ export class GameController {
         this.bg.y = this.config.height / 2;
     }
 
+    // private setBackground(bg: string = "bg") {
+    //     const texture = Assets.get(bg);
+    //     this.bg.texture = texture;
+
+    //     // 1. Calculate scale ratios
+    //     const scaleX = this.config.width / texture.width;
+    //     const scaleY = this.config.height / texture.height;
+
+    //     // 2. Use the larger scale to ensure the entire area is covered
+    //     const scale = Math.max(scaleX, scaleY);
+    //     this.bg.scale.set(scale);
+
+    //     // 3. Center the sprite
+    //     // Set anchor to 0.5 to rotate/scale from center
+    //     this.bg.anchor.set(0.5);
+    //     this.bg.x = this.config.width / 2;
+    //     this.bg.y = this.config.height / 2;
+    // }
+
     private buildGrid() {
         const pos = getPos(this.config.position, this.config)
         this.gameContainer.position.set(pos.x - ((this.config.symbolWidth * this.config.cols + this.config.gapX * (this.config.cols - 1)) / 2), pos.y - (this.config.symbolHeight + this.config.gapY) * this.config.rows / 2)
         this.gameState.stage.addChild(this.gameContainer);
 
         for (let i = 0; i < this.config.cols; i++) {
-            const reel: Reel = new Reel(this.config, { left: i * (this.config.symbolWidth + this.config.gapX), top: 0, }, i)
+            const reel: Reel = new Reel(this.config, { left: i * (this.config.symbolWidth + this.config.gapX), top: 0, }, i, this.stage)
             this.reels.push(reel)
             this.gameContainer.addChild(reel.container)
         }
@@ -146,8 +182,11 @@ export class GameController {
         if (this.gameState.state == "ACTIVE") return
         this.gameState.state = "ACTIVE"
         // this.reels.forEach((r) => r.spin([0, 0, 0, 0, 0, 0, 0]))
-        console.log("Symbols", this.config.symbols)
+        console.log("Symbols", this.config.symbols.map(s => ({ id: s.id, name: s.asset.alias })))
         console.log("Timeline", timeline)
+        for (const f of this.gameState.features) {
+            f.onSpinStart()
+        }
         await this.spinReels()
 
         for (let i = 1; i < timeline.length; i++) {
@@ -158,6 +197,10 @@ export class GameController {
                     break;
                 }
             }
+        }
+
+        for (const f of this.gameState.features) {
+            f.onSpinEnd()
         }
         this.gameState.state = "IDLE"
     }
@@ -192,5 +235,15 @@ export class GameController {
         else {
             throw new Error(`Error in getSymbol in game controller, tried to get a symbol that doesn't exists col: ${col} row: ${row}`);
         }
+    }
+
+    public async place(src: string, position: Position): Promise<Container> {
+        const texture = await Assets.load(src)
+        const sprite = new Sprite(texture)
+        sprite.anchor.set(.5)
+        const pos = getPos(position, this.config)
+        sprite.position.set(pos.x, pos.y)
+        this.stage.addChild(sprite)
+        return sprite
     }
 }

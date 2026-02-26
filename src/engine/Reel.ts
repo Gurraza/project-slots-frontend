@@ -1,6 +1,7 @@
 import { Assets, Container, Sprite, Graphics } from "pixi.js";
 import { getPos, type GameConfig, type Position, type SymbolDef } from "./types";
 import gsap from "gsap"
+import { playAnimation } from "./Animations";
 
 export class ReelSymbol extends Sprite {
     public symbolId: number
@@ -31,6 +32,16 @@ export class ReelSymbol extends Sprite {
         this.anchor.set(0.5);
         this.x = this.config.symbolWidth / 2;
     }
+
+    // get y(): number {
+    //     return this.position.y;
+    // }
+
+    // set y(value: number) {
+    //     this.position.y = value;
+    //     // Higher on screen (lower Y) gets a higher zIndex
+    //     this.zIndex = -value;
+    // }
 }
 
 export class Reel {
@@ -47,16 +58,20 @@ export class Reel {
     private stopSymbols: number[] = []
     private resolveSpin: (() => void) | null = null
     private index: number
+    private stage: Container
+    // private symbolZIndex: number = 0
 
-    constructor(config: GameConfig, position: Position, index: number) {
+    constructor(config: GameConfig, position: Position, index: number, stage: Container) {
         this.config = config
         this.container = new Container()
+        // this.container.sortableChildren = true;
         const containerPos = getPos(position, config)
         this.container.position.set(containerPos.x, containerPos.y)
         this.slotHeight = this.config.symbolHeight + this.config.gapY
         this.totalHeight = this.slotHeight * (this.config.rows + 2)
         this.viewBottom = (this.config.rows + 1) * this.slotHeight + this.slotHeight / 2
         this.index = index
+        this.stage = stage
         this.initSymbols()
     }
 
@@ -95,8 +110,8 @@ export class Reel {
                         symbol.y -= this.totalHeight
 
 
-                        if (this.symbolsRotated >= this.config.symbolsBeforeStop) {
-                            const targetId = this.stopSymbols[this.stopSymbols.length - 1 - this.symbolsRotated - this.config.symbolsBeforeStop]
+                        if (this.symbolsRotated >= this.config.symbolsBeforeStop + (this.config.staggerTime.end * this.index)) {
+                            const targetId = this.stopSymbols[this.stopSymbols.length - 1 - (this.symbolsRotated - (this.config.symbolsBeforeStop + (this.config.staggerTime.end * this.index)))]
                             if (targetId != undefined) {
                                 symbol.changeSymbolState(targetId)
                             }
@@ -108,7 +123,7 @@ export class Reel {
                             symbol.changeSymbolState(this.getRandomSymbolId())
                         }
 
-                        if (this.symbolsRotated - this.config.symbolsBeforeStop == this.config.rows) {
+                        if (this.symbolsRotated - (this.config.symbolsBeforeStop + (this.config.staggerTime.end * this.index)) == this.config.rows) {
                             readyToLand = true
                         }
 
@@ -143,7 +158,7 @@ export class Reel {
         gsap.to(this.symbols, {
             y: `-=${this.config.windup.pixels}`,
             duration: this.config.windup.time,
-            delay: this.config.staggerTime * this.index,
+            delay: this.config.staggerTime.start * this.index,
             ease: this.config.windup.ease,
             onComplete: () => {
                 this.state = "SPINNING";
@@ -228,11 +243,17 @@ export class Reel {
         // await this.playExplodeEffects(exploded);
 
         // 4. Update data and pre-position the exploded symbols at the top
-        exploded.forEach((symbol, i) => {
-            symbol.changeSymbolState(replaceIds[i]);
+        const promises: Promise<void>[] = []
+        exploded.forEach((s: ReelSymbol, i) => {
+            const global = this.stage.toLocal(s.getGlobalPosition());
+
+            promises.push(playAnimation(.3, this.stage, '/games/clashofreels/animations/explosion.json', { x: global.x, y: global.y }))
+            s.changeSymbolState(replaceIds[i]);
             // Move above the top visible slot
-            symbol.y = -this.slotHeight * (i + 1) + (this.config.symbolHeight / 2);
+            s.y = -this.slotHeight * (i + 1) + (this.config.symbolHeight / 2);
         });
+
+        await Promise.all(promises)
 
         // 5. Combine new top symbols with surviving symbols for the final grid layout
         // New symbols drop to the top rows; surviving symbols keep their relative order

@@ -16,4 +16,12 @@ export class Feature {
     init() {
         console.log(`Init on feature: ${this.type}`)
     }
+
+    public onSpinStart() {
+
+    }
+
+    public onSpinEnd() {
+
+    }
 }

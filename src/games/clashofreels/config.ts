@@ -19,7 +19,7 @@ const config: GameConfig = {
     gapY: 0,
     background: {
         asset: {
-            src: "/games/clashofreels/exp/_0019_Background.png",
+            src: "/games/clashofreels/animated_background2.mp4",
             alias: "bg"
         }
     },
@@ -36,16 +36,19 @@ const config: GameConfig = {
             }
         }
     },
-    symbolsBeforeStop: 0,
+    symbolsBeforeStop: 3,
     reelSpinMode: "CONTINIOUS",
     motionBlurStrength: 8,
 
-    spinSpeed: 17,
+    spinSpeed: 25,
     spinAcceleration: .25,
     spinDeacceleration: .25,
-    staggerTime: .1,
+    staggerTime: {
+        start: 0,
+        end: 1,
+    },
     windup: {
-        pixels: 10,
+        pixels: 0,
         time: .2,
         ease: "power2.inOut"
     },
@@ -59,16 +62,17 @@ const config: GameConfig = {
 
     pathPrefix: "",
     features: [
-        "EXPLODE_AND_CASCADE_FEATURE"
+        "EXPLODE_AND_CASCADE_FEATURE",
+        "SPIN_BUTTON_FEATURE"
     ],
     symbols: [
         {
             id: 0,
             asset: {
-                src: "/games/clashofreels/exp/_0009_Barbarian.png",
+                src: "/games/clashofreels/exp/_0008_Fire_Barbarian.png",
                 alias: "barbarian",
             },
-            scale: 1,
+            scale: 1.1,
         },
         {
             id: 1,
@@ -140,7 +144,7 @@ const config: GameConfig = {
                 src: "/games/clashofreels/exp/_0005_BarbarianKing.png",
                 alias: "barbarianking",
             },
-            scale: 1,
+            scale: 1.3,
         },
     ],
 };
