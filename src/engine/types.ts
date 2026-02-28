@@ -2,11 +2,12 @@ import type { Application, Container } from "pixi.js"
 import type { Feature } from "./features/feature"
 
 export type GameConfig = Readonly<{
+    gameTitle: string
+    gameId: string
     endpoints: {
         spin: string,
         init: string
     }
-    title: string
     width: number
     height: number
     position: Position
@@ -61,11 +62,18 @@ export type GameState = {
     app: Application
     features: Feature[]
 }
+export type SymbolVisualState =
+    | "idle"
+    | "land"
+    | "win"
+    | "remove"
+    | "highlight"
 
 export type SymbolDef = {
     id: number
     asset: Asset
     scale: number
+    animations?: Partial<Record<SymbolVisualState, string>>
 }
 
 export type Timeline = TimelineEvent[];

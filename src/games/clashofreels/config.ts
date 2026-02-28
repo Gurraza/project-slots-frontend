@@ -2,9 +2,10 @@
 import { type GameConfig } from '../../engine/types.ts';
 
 const config: GameConfig = {
-    title: "Clash Of Reels",
+    gameTitle: "Clash Of Reels",
+    gameId: "clashofreels",
     endpoints: {
-        spin: "/play/clashofreels",
+        spin: "/api/play",
         init: ""
     },
     width: 1280,
@@ -19,7 +20,7 @@ const config: GameConfig = {
     gapY: 0,
     background: {
         asset: {
-            src: "/games/clashofreels/animated_background2.mp4",
+            src: "/games/clashofreels/animated_background2_slowmo.mp4",
             alias: "bg"
         }
     },
@@ -62,17 +63,18 @@ const config: GameConfig = {
 
     pathPrefix: "",
     features: [
+        "FLYING_NUMBER_FEATURE",
         "EXPLODE_AND_CASCADE_FEATURE",
-        "SPIN_BUTTON_FEATURE"
+        "SPIN_BUTTON_FEATURE",
     ],
     symbols: [
         {
             id: 0,
             asset: {
-                src: "/games/clashofreels/exp/_0008_Fire_Barbarian.png",
+                src: "/games/clashofreels/exp/_0009_Barbarian.png",
                 alias: "barbarian",
             },
-            scale: 1.1,
+            scale: 1,
         },
         {
             id: 1,
@@ -82,32 +84,32 @@ const config: GameConfig = {
             },
             scale: 1,
         },
+        // {
+        //     id: 2,
+        //     asset: {
+        //         src: "/games/clashofreels/exp/_0013_Goblin.png",
+        //         alias: "goblin",
+        //     },
+        //     scale: 1,
+        // },
         {
             id: 2,
-            asset: {
-                src: "/games/clashofreels/exp/_0013_Goblin.png",
-                alias: "goblin",
-            },
-            scale: 1,
-        },
-        {
-            id: 3,
             asset: {
                 src: "/games/clashofreels/exp/_0016_Minion.png",
                 alias: "minion",
             },
             scale: 1,
         },
+        // {
+        //     id: 4,
+        //     asset: {
+        //         src: "/games/clashofreels/exp/_0007_Pekka.png",
+        //         alias: "pekka",
+        //     },
+        //     scale: 1,
+        // },
         {
-            id: 4,
-            asset: {
-                src: "/games/clashofreels/exp/_0007_Pekka.png",
-                alias: "pekka",
-            },
-            scale: 1,
-        },
-        {
-            id: 5,
+            id: 3,
             asset: {
                 src: "/games/clashofreels/exp/_0011_Gem.png",
                 alias: "gem",
@@ -115,15 +117,23 @@ const config: GameConfig = {
             scale: 1,
         },
         {
-            id: 6,
+            id: 4,
             asset: {
-                src: "/games/clashofreels/exp/_0014_Elixir.png",
-                alias: "elixir",
+                src: "/games/clashofreels/exp/_0010_Dark_Elixir.png",
+                alias: "darkelixir",
             },
             scale: 1,
         },
+        // {
+        //     id: 6,
+        //     asset: {
+        //         src: "/games/clashofreels/exp/_0014_Elixir.png",
+        //         alias: "elixir",
+        //     },
+        //     scale: 1,
+        // },
         {
-            id: 7,
+            id: 5,
             asset: {
                 src: "/games/clashofreels/exp/_0015_Gold.png",
                 alias: "gold",
@@ -131,15 +141,7 @@ const config: GameConfig = {
             scale: 1,
         },
         {
-            id: 8,
-            asset: {
-                src: "/games/clashofreels/exp/_0010_Dark_Elixir.png",
-                alias: "darkelixir",
-            },
-            scale: 1,
-        },
-        {
-            id: 9,
+            id: 63,
             asset: {
                 src: "/games/clashofreels/exp/_0005_BarbarianKing.png",
                 alias: "barbarianking",

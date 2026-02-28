@@ -1,14 +1,16 @@
 import { Assets, Container, Sprite, Graphics } from "pixi.js";
-import { getPos, type GameConfig, type Position, type SymbolDef } from "./types";
+import { getPos, type GameConfig, type Position, type SymbolDef, type SymbolVisualState } from "./types";
 import gsap from "gsap"
-import { playAnimation } from "./Animations";
+import { AnimationController } from "./AnimationController";
 
 export class ReelSymbol extends Sprite {
     public symbolId: number
     private config: GameConfig
-    constructor(symbolId: number, config: GameConfig) {
+    private stage: Container
+    constructor(symbolId: number, config: GameConfig, stage: Container) {
         super()
         this.config = config
+        this.stage = stage
         this.symbolId = -1
         this.changeSymbolState(symbolId)
     }
@@ -31,6 +33,15 @@ export class ReelSymbol extends Sprite {
 
         this.anchor.set(0.5);
         this.x = this.config.symbolWidth / 2;
+    }
+    public getDefinition(): SymbolDef {
+        const def = this.config.symbols.find(s => s.id === this.symbolId);
+        if (!def) throw new Error("Missing symbol definition");
+        return def;
+    }
+
+    public async play(state: SymbolVisualState) {
+        await AnimationController.play(this, this.stage, state);
     }
 
     // get y(): number {
@@ -78,7 +89,7 @@ export class Reel {
     initSymbols(): void {
 
         for (let i = 0; i < this.config.rows + 2; i++) {
-            const symbol = new ReelSymbol(this.getRandomSymbolId(), this.config)
+            const symbol = new ReelSymbol(this.getRandomSymbolId(), this.config, this.stage)
 
             symbol.y = (i - 1) * this.slotHeight + (this.config.symbolHeight / 2);
 
@@ -219,7 +230,7 @@ export class Reel {
         });
     }
 
-    private getSorted(): ReelSymbol[] {
+    public getSorted(): ReelSymbol[] {
         return [...this.symbols].sort((a, b) => a.y - b.y)
     }
 
@@ -245,19 +256,19 @@ export class Reel {
         // 4. Update data and pre-position the exploded symbols at the top
         const promises: Promise<void>[] = []
         exploded.forEach((s: ReelSymbol, i) => {
-            const global = this.stage.toLocal(s.getGlobalPosition());
+            //const global = this.stage.toLocal(s.getGlobalPosition());
 
-            promises.push(playAnimation(.3, this.stage, '/games/clashofreels/animations/explosion.json', { x: global.x, y: global.y }))
+            promises.push(s.play("remove")) //playAnimation(.3, this.stage, '/games/clashofreels/animations/explosion.json', { x: global.x, y: global.y }))
             s.changeSymbolState(replaceIds[i]);
             // Move above the top visible slot
-            s.y = -this.slotHeight * (i + 1) + (this.config.symbolHeight / 2);
+            s.y = -this.slotHeight * (exploded.length - i) + (this.config.symbolHeight / 2);
         });
 
         await Promise.all(promises)
 
         // 5. Combine new top symbols with surviving symbols for the final grid layout
         // New symbols drop to the top rows; surviving symbols keep their relative order
-        const newGridLayout = [...exploded.reverse(), ...surviving]
+        const newGridLayout = [...exploded, ...surviving]
 
         // 6. Tween all symbols to their new calculated resting Y positions
         const dropPromises = newGridLayout.map((symbol, rowIndex) => {

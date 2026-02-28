@@ -39,7 +39,7 @@ export class GameController {
 
     public async boot() {
         // Now reads dynamically from injected config
-        console.log(`Booting Game Engine for: ${this.gameState.config.title}`)
+        console.log(`Booting Game Engine for: ${this.gameState.config.gameTitle}`)
         this.gameState.features.forEach(f => f.init())
         await this.loadAssets()
         this.setBackground()
@@ -102,25 +102,6 @@ export class GameController {
         this.bg.y = this.config.height / 2;
     }
 
-    // private setBackground(bg: string = "bg") {
-    //     const texture = Assets.get(bg);
-    //     this.bg.texture = texture;
-
-    //     // 1. Calculate scale ratios
-    //     const scaleX = this.config.width / texture.width;
-    //     const scaleY = this.config.height / texture.height;
-
-    //     // 2. Use the larger scale to ensure the entire area is covered
-    //     const scale = Math.max(scaleX, scaleY);
-    //     this.bg.scale.set(scale);
-
-    //     // 3. Center the sprite
-    //     // Set anchor to 0.5 to rotate/scale from center
-    //     this.bg.anchor.set(0.5);
-    //     this.bg.x = this.config.width / 2;
-    //     this.bg.y = this.config.height / 2;
-    // }
-
     private buildGrid() {
         const pos = getPos(this.config.position, this.config)
         this.gameContainer.position.set(pos.x - ((this.config.symbolWidth * this.config.cols + this.config.gapX * (this.config.cols - 1)) / 2), pos.y - (this.config.symbolHeight + this.config.gapY) * this.config.rows / 2)
@@ -136,7 +117,8 @@ export class GameController {
     async fetchTimeline(): Promise<Timeline | undefined> {
         const currentParams = new URLSearchParams(window.location.search);
         const seed = currentParams.get('seed');
-        const url = new URL(this.config.endpoints.spin, "http://localhost:8080");
+        const url = new URL(this.config.endpoints.spin, "http://192.168.68.102:8080")
+        url.searchParams.append("gameId", this.config.gameId)
         if (seed) {
             url.searchParams.set('seed', seed);
         }
@@ -184,18 +166,28 @@ export class GameController {
         // this.reels.forEach((r) => r.spin([0, 0, 0, 0, 0, 0, 0]))
         console.log("Symbols", this.config.symbols.map(s => ({ id: s.id, name: s.asset.alias })))
         console.log("Timeline", timeline)
+
         for (const f of this.gameState.features) {
             f.onSpinStart()
         }
-        await this.spinReels()
 
-        for (let i = 1; i < timeline.length; i++) {
+        for (let i = 0; i < timeline.length; i++) {
             const event = timeline[i]
+            if (event.type === "SPIN_START") {
+                await this.spinReels(event.grid)
+            }
+            const featurePromises: Promise<void>[] = [];
+
             for (const feature of this.gameState.features) {
-                if (feature.type === event.type) {
-                    await feature.onEvent(event);
-                    break;
+                if (feature.eventType === event.type) {
+                    // Push the promise without awaiting it immediately
+                    featurePromises.push(feature.onEvent(event));
                 }
+            }
+
+            // Await all matching features concurrently
+            if (featurePromises.length > 0) {
+                await Promise.all(featurePromises);
             }
         }
 
@@ -205,14 +197,14 @@ export class GameController {
         this.gameState.state = "IDLE"
     }
 
-    private async spinReels() {
+    private async spinReels(g: Grid) {
         const promises: Promise<void>[] = []
         this.reels.forEach((r, i) => {
             if (!this.gameState.timeline) {
                 throw new Error("No timeline in spinReels");
 
             }
-            promises.push(r.spin(this.gameState.timeline[0].grid[i]))
+            promises.push(r.spin(g[i]))
         })
         await Promise.all(promises)
     }
@@ -220,15 +212,7 @@ export class GameController {
     private handleSpinPress = async (): Promise<void> => { this.play() }
 
     public getSymbol(col: number, row: number): ReelSymbol {
-        console.log(`col:${col} row:${row}`)
-        const reel = this.reels[col];
-        // Find the symbol closest to the expected Y position
-        // This assumes row 0 is at y=0, row 1 is at y=slotHeight, etc.
-        // Adjust logic if your grid is centered differently.
-        const targetY = (row * reel.slotHeight) + (this.config.symbolHeight / 2);
-
-        // Allow a small margin of error for floating point positions
-        const res = reel.symbols.find(s => Math.abs(s.y - targetY) < 15);
+        const res = this.reels[col].getSorted()[row + 1]
         if (res) {
             return res
         }
@@ -245,5 +229,9 @@ export class GameController {
         sprite.position.set(pos.x, pos.y)
         this.stage.addChild(sprite)
         return sprite
+    }
+
+    public spaceBtnPressed() {
+        this.handleSpinPress()
     }
 }

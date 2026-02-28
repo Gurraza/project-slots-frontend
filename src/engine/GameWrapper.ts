@@ -5,16 +5,15 @@ import type { GameConfig } from "./types"
 export class GameWrapper {
     public app: Application;
     private container: HTMLElement;
-    private config: GameConfig;
+    private config: GameConfig
 
     constructor(container: HTMLElement, config: GameConfig) {
         this.container = container;
-        this.config = config;
+        this.config = config
         this.app = new Application();
     }
 
     public async init() {
-
         await this.app.init({
             width: this.config.width,
             height: this.config.height,
@@ -26,12 +25,20 @@ export class GameWrapper {
         this.container.appendChild(this.app.canvas);
 
         window.addEventListener('resize', () => this.resize());
+
         this.resize()
 
         const game = new GameController(this.app, this.config);
         this.app.ticker.add((ticker) => {
             game.update(ticker.deltaTime)
         })
+        window.addEventListener('keydown', (event: KeyboardEvent) => {
+            if (event.code === 'Space') {
+                // Prevent default behavior (like page scrolling)
+                event.preventDefault();
+                game.spaceBtnPressed();
+            }
+        });
         await game.boot();
     }
 

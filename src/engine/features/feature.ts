@@ -2,19 +2,21 @@ import type { GameController } from "../GameController"
 import { type TimelineEvent } from "../types"
 
 export class Feature {
-    public type: string
+    public id: string
+    public eventType: string
     protected game: GameController
-    constructor(game: GameController, type: string) {
+    constructor(game: GameController, id: string, eventType?: string) {
         this.game = game
-        this.type = type
+        this.id = id
+        this.eventType = eventType || id
     }
 
     async onEvent(event: TimelineEvent) {
-        console.log(`Feature event of ${this.type} happened data: `, event)
+        console.log(`Feature event of ${this.id} happened data: `, event)
     }
 
     init() {
-        console.log(`Init on feature: ${this.type}`)
+        console.log(`Init on feature: ${this.id}`)
     }
 
     public onSpinStart() {
