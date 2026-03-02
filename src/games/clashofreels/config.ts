@@ -37,7 +37,7 @@ const config: GameConfig = {
             }
         }
     },
-    symbolsBeforeStop: 3,
+    symbolsBeforeStop: 0,
     reelSpinMode: "CONTINIOUS",
     motionBlurStrength: 8,
 
@@ -45,8 +45,8 @@ const config: GameConfig = {
     spinAcceleration: .25,
     spinDeacceleration: .25,
     staggerTime: {
-        start: 0,
-        end: 1,
+        start: .1,
+        end: 0,
     },
     windup: {
         pixels: 0,
@@ -61,6 +61,10 @@ const config: GameConfig = {
     cols: 7,
     rows: 7,
 
+    symbolBg: {
+        src: "/games/clashofreels/Background_Cell.png",
+        alias: "cell_bg"
+    },
     pathPrefix: "",
     features: [
         "FLYING_NUMBER_FEATURE",
@@ -71,82 +75,66 @@ const config: GameConfig = {
         {
             id: 0,
             asset: {
-                src: "/games/clashofreels/exp/_0009_Barbarian.png",
+                src: "/games/clashofreels/clash_symbols_v3/barbarian.png",
                 alias: "barbarian",
             },
-            scale: 1,
+            scale: .8,
         },
         {
             id: 1,
             asset: {
-                src: "/games/clashofreels/exp/_0017_Archer.png",
-                alias: "archer",
+                src: "/games/clashofreels/clash_symbols_v3/orch.png",
+                alias: "orch",
             },
-            scale: 1,
+            scale: .8,
         },
-        // {
-        //     id: 2,
-        //     asset: {
-        //         src: "/games/clashofreels/exp/_0013_Goblin.png",
-        //         alias: "goblin",
-        //     },
-        //     scale: 1,
-        // },
         {
             id: 2,
             asset: {
-                src: "/games/clashofreels/exp/_0016_Minion.png",
-                alias: "minion",
+                src: "/games/clashofreels/clash_symbols_v3/dragon.png",
+                alias: "dragon",
             },
-            scale: 1,
+            scale: .8,
         },
-        // {
-        //     id: 4,
-        //     asset: {
-        //         src: "/games/clashofreels/exp/_0007_Pekka.png",
-        //         alias: "pekka",
-        //     },
-        //     scale: 1,
-        // },
         {
             id: 3,
             asset: {
-                src: "/games/clashofreels/exp/_0011_Gem.png",
-                alias: "gem",
+                src: "/games/clashofreels/clash_symbols_v3/amatyst.png",
+                alias: "amatyst",
             },
-            scale: 1,
+            scale: .8,
         },
         {
             id: 4,
             asset: {
-                src: "/games/clashofreels/exp/_0010_Dark_Elixir.png",
-                alias: "darkelixir",
+                src: "/games/clashofreels/clash_symbols_v3/amber.png",
+                alias: "amber",
             },
-            scale: 1,
+            scale: .8,
         },
-        // {
-        //     id: 6,
-        //     asset: {
-        //         src: "/games/clashofreels/exp/_0014_Elixir.png",
-        //         alias: "elixir",
-        //     },
-        //     scale: 1,
-        // },
         {
             id: 5,
             asset: {
-                src: "/games/clashofreels/exp/_0015_Gold.png",
-                alias: "gold",
+                src: "/games/clashofreels/clash_symbols_v3/saphire.png",
+                alias: "saphire",
             },
-            scale: 1,
+            scale: .8,
+        },
+        {
+            id: 6,
+            asset: {
+                src: "/games/clashofreels/clash_symbols_v3/prince.png",
+                alias: "prince",
+            },
+            scale: .8,
         },
         {
             id: 63,
             asset: {
-                src: "/games/clashofreels/exp/_0005_BarbarianKing.png",
-                alias: "barbarianking",
+                src: "/games/clashofreels/clash_symbols_v3/trophy.png",
+                alias: "trophy",
             },
-            scale: 1.3,
+            scale: .8,
         },
     ],
 };

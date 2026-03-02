@@ -12,9 +12,9 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
         Clash of Reels
       </a>
 
-      <a href="/games/slotgame/" 
+      <a href="/games/lines/" 
          style="padding: 20px 40px; background: #2a2a2a; border: 1px solid #444; color: white; text-decoration: none; border-radius: 8px; font-size: 1.2rem; transition: background 0.2s;">
-        Slot Game Default
+        Lines Game
       </a>
     </div>
 

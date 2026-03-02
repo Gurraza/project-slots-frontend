@@ -8,13 +8,13 @@ export class AnimationController {
         const def = symbol.getDefinition();
 
         const animationKey = def.animations?.[state] ?? this.getDefaultForState(state);
-
+        AnimationRegistry.registerDefaultAnimations()
         // 2️⃣ Get factory from registry
         const factory = AnimationRegistry.get(animationKey) ?? AnimationRegistry.get("none");
 
         if (!factory) return;
 
-        await factory(symbol, stage);
+        await factory(symbol.symbolSprite, stage);
     }
 
     private static getDefaultForState(state: SymbolVisualState): string {

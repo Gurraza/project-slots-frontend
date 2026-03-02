@@ -2,18 +2,19 @@
 import { type GameConfig } from '../../engine/types.ts';
 
 const config: GameConfig = {
-    title: "Clash Of Reels",
+    gameId: "lines",
+    gameTitle: "Lines",
     endpoints: {
-        spin: "/play/lines",
+        spin: "/api/play",
         init: ""
     },
     width: 1280,
     height: 720,
     position: {
         left: 1280 / 2,
-        top: 720 / 2 + 25
+        top: 720 / 2 + 30
     },
-    symbolHeight: 90,
+    symbolHeight: 100,
     symbolWidth: 90,
     gapX: 30,
     gapY: 15,
@@ -40,10 +41,13 @@ const config: GameConfig = {
     reelSpinMode: "CONTINIOUS",
     motionBlurStrength: 8,
 
-    spinSpeed: 15,
-    spinAcceleration: .5,
+    spinSpeed: 25,
+    spinAcceleration: .8,
     spinDeacceleration: .2,
-    staggerTime: .1,
+    staggerTime: {
+        start: 0,
+        end: 1,
+    },
     windup: {
         pixels: 0,
         time: 0,

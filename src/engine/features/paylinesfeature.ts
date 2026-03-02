@@ -37,6 +37,7 @@ export class PaylinesFeature extends Feature {
     constructor(game: GameController) {
         super(game, "PAYLINES_FEATURE")
         this.lineLayer = new Container()
+        this.lineLayer.zIndex = 100
         this.game.gameContainer.addChild(this.lineLayer)
     }
 

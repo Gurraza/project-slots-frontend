@@ -1,5 +1,5 @@
 import { ExplodeAndCascadeFeature } from "./explodeandcascade";
-import { FlyingNumberOnRemove } from "./FlyingNumberOnRemove";
+import { FlyingNumberOnRemove } from "./flyingNumberOnRemove";
 import { PaylinesFeature } from "./paylinesfeature";
 import { SpinButtonFeature } from "./spinbutton";
 import { TransformFeature } from "./transform";

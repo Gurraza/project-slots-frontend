@@ -48,6 +48,7 @@ export type GameConfig = Readonly<{
     cols: number
     rows: number
 
+    symbolBg?: Asset
     pathPrefix: string
     features: string[]
     symbols: SymbolDef[]

@@ -6,7 +6,7 @@ export class GameWrapper {
     public app: Application;
     private container: HTMLElement;
     private config: GameConfig
-
+    public game: GameController | undefined
     constructor(container: HTMLElement, config: GameConfig) {
         this.container = container;
         this.config = config
@@ -28,18 +28,18 @@ export class GameWrapper {
 
         this.resize()
 
-        const game = new GameController(this.app, this.config);
+        this.game = new GameController(this.app, this.config);
         this.app.ticker.add((ticker) => {
-            game.update(ticker.deltaTime)
+            this.game!.update(ticker.deltaTime)
         })
         window.addEventListener('keydown', (event: KeyboardEvent) => {
             if (event.code === 'Space') {
                 // Prevent default behavior (like page scrolling)
                 event.preventDefault();
-                game.spaceBtnPressed();
+                this.game!.spaceBtnPressed();
             }
         });
-        await game.boot();
+        await this.game.boot();
     }
 
     private resize() {

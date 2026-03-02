@@ -19,7 +19,8 @@ export class ExplodeAndCascadeFeature extends Feature {
 
     async onEvent(event: TimelineEvent): Promise<void> {
         const meta: ClusterMeta = event.meta
-        const promises: Promise<void>[] = [new Promise(res => setTimeout(() => res(), 500))]
+        // await new Promise(r => setTimeout(r, 1000))
+        const promises: Promise<void>[] = []
 
         this.game.reels.forEach((reel: Reel, index: number) => {
             const indices: number[] = []

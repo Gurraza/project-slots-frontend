@@ -11,7 +11,6 @@ async function bootstrap() {
     registerClashOfReelsAnimations()
     const engine = new GameWrapper(container, config);
     await engine.init();
-
 }
 
 bootstrap();

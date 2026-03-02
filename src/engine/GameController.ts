@@ -57,8 +57,9 @@ export class GameController {
         })
         const extraAssets: Asset[] = [
             this.config.ui.spinButton.asset,
-            this.config.background.asset
+            this.config.background.asset,
         ]
+        this.config.symbolBg && extraAssets.push(this.config.symbolBg)
         extraAssets.forEach(a => {
             Assets.add(a)
             toLoad.push(a.alias)
@@ -94,6 +95,7 @@ export class GameController {
         // 2. Use the larger scale to ensure the entire area is covered
         const scale = Math.max(scaleX, scaleY);
         this.bg.scale.set(scale);
+        this.bg.zIndex = -10
 
         // 3. Center the sprite
         // Set anchor to 0.5 to rotate/scale from center
@@ -117,7 +119,8 @@ export class GameController {
     async fetchTimeline(): Promise<Timeline | undefined> {
         const currentParams = new URLSearchParams(window.location.search);
         const seed = currentParams.get('seed');
-        const url = new URL(this.config.endpoints.spin, "http://192.168.68.102:8080")
+        const url = new URL(this.config.endpoints.spin, "http://localhost:8080")
+        // const url = new URL(this.config.endpoints.spin, "http://192.168.68.102:8080")
         url.searchParams.append("gameId", this.config.gameId)
         if (seed) {
             url.searchParams.set('seed', seed);

@@ -1,39 +1,85 @@
-import { Assets, Container, Sprite, Graphics } from "pixi.js";
+import { Assets, Container, Sprite, Graphics, Texture } from "pixi.js";
 import { getPos, type GameConfig, type Position, type SymbolDef, type SymbolVisualState } from "./types";
 import gsap from "gsap"
 import { AnimationController } from "./AnimationController";
 
-export class ReelSymbol extends Sprite {
-    public symbolId: number
+export class ReelSymbol extends Container {
+    public symbolId: number = -1
     private config: GameConfig
     private stage: Container
+
+    private bgSprite: Sprite
+    public symbolSprite: Sprite
     constructor(symbolId: number, config: GameConfig, stage: Container) {
         super()
         this.config = config
         this.stage = stage
-        this.symbolId = -1
+
+        this.bgSprite = new Sprite()
+        this.bgSprite.anchor.set(0.5)
+        this.addChild(this.bgSprite)
+
+        this.symbolSprite = new Sprite()
+        this.symbolSprite.anchor.set(0.5)
+        this.addChild(this.symbolSprite)
+
+        this.x = this.config.symbolWidth / 2
+
         this.changeSymbolState(symbolId)
     }
 
     public changeSymbolState(newStateId: number) {
-        const s: SymbolDef | undefined = this.config.symbols.find(s => s.id == newStateId)
-        if (!s) throw new Error("Bad id in changeSymbolState, tried: " + newStateId);
-        this.texture = Assets.get(s.asset.alias)
-        this.symbolId = s.id
+        const s: SymbolDef | undefined = this.config.symbols.find(s => s.id == newStateId);
+        if (!s) throw new Error(`Bad id in changeSymbolState, tried: ${newStateId}`);
 
+        this.symbolId = s.id;
+
+        // Update textures independently
+        this.symbolSprite.texture = Assets.get(s.asset.alias);
+
+        // Assuming your SymbolDef has background logic. 
+        // If not, add a bgAlias to the definition or assign programmatically.
+        if (this.config.symbolBg && this.config.symbolBg.alias) {
+            this.bgSprite.texture = Assets.get(this.config.symbolBg.alias);
+            this.bgSprite.visible = true;
+        } else {
+            this.bgSprite.visible = false;
+        }
+
+        // Handle scaling on the container or individual sprites as needed
         this.scale.set(1);
-
-        const ratioX = this.config.symbolWidth / this.texture.width;
-        const ratioY = this.config.symbolHeight / this.texture.height;
+        const ratioX = this.config.symbolWidth / this.symbolSprite.texture.width;
+        const ratioY = this.config.symbolHeight / this.symbolSprite.texture.height;
         const baseScale = Math.min(ratioX, ratioY);
-
         const finalScale = baseScale * s.scale;
 
-        this.scale.set(finalScale);
+        // Apply scale to the symbol sprite, allowing the background to scale differently if needed
+        this.symbolSprite.scale.set(finalScale);
 
-        this.anchor.set(0.5);
-        this.x = this.config.symbolWidth / 2;
+        // Example: Make background fill the slot area
+        this.bgSprite.width = this.config.symbolWidth;
+        this.bgSprite.height = this.config.symbolHeight;
     }
+
+    // public cchangeSymbolState(newStateId: number) {
+    //     const s: SymbolDef | undefined = this.config.symbols.find(s => s.id == newStateId)
+    //     if (!s) throw new Error("Bad id in changeSymbolState, tried: " + newStateId);
+    //     this.texture = Assets.get(s.asset.alias)
+    //     this.symbolId = s.id
+
+    //     this.scale.set(1);
+
+    //     const ratioX = this.config.symbolWidth / this.texture.width;
+    //     const ratioY = this.config.symbolHeight / this.texture.height;
+    //     const baseScale = Math.min(ratioX, ratioY);
+
+    //     const finalScale = baseScale * s.scale;
+
+    //     this.scale.set(finalScale);
+
+    //     this.anchor.set(0.5);
+    //     this.x = this.config.symbolWidth / 2;
+    // }
     public getDefinition(): SymbolDef {
         const def = this.config.symbols.find(s => s.id === this.symbolId);
         if (!def) throw new Error("Missing symbol definition");
@@ -253,7 +299,17 @@ export class Reel {
         // 3. (Optional) Await explosion visual effects here
         // await this.playExplodeEffects(exploded);
 
+
         // 4. Update data and pre-position the exploded symbols at the top
+        const matchPromises: Promise<void>[] = []
+        exploded.forEach((s: ReelSymbol, i) => {
+            //const global = this.stage.toLocal(s.getGlobalPosition());
+
+            matchPromises.push(s.play("highlight"))
+        });
+
+        await Promise.all(matchPromises)
+
         const promises: Promise<void>[] = []
         exploded.forEach((s: ReelSymbol, i) => {
             //const global = this.stage.toLocal(s.getGlobalPosition());
