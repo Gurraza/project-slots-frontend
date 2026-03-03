@@ -38,12 +38,12 @@ const config: GameConfig = {
         }
     },
     reelSpinMode: "CONTINIOUS",
-    motionBlurStrength: 8,
 
     spinSpeed: 25,
     spinAcceleration: .25,
     spinDeacceleration: .25,
     spinTime: 1000,
+    motionBlurStrength: .4,
     staggerTime: {
         start: 100,
         end: 0,
@@ -116,8 +116,8 @@ const config: GameConfig = {
         {
             id: 5,
             asset: {
-                src: "/games/clashofreels/clash_symbols_v3/Akvamarin.png",
-                alias: "akvamarin",
+                src: "/games/clashofreels/clash_symbols_v3/dragon.png",
+                alias: "dragon",
             },
             scale: .8,
         },

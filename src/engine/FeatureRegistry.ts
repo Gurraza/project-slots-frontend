@@ -1,7 +1,6 @@
 import { ExplodeAndCascadeFeature } from "./features/explodeandcascade";
 import { FlyingNumberOnRemove } from "./features/flyingNumberOnRemove";
 import { PaylinesFeature } from "./features/paylinesfeature";
-import { SpinButtonFeature } from "./features/spinbutton";
 import { TransformFeature } from "./features/transform";
 import { SpinFeature } from "./features/spin";
 import type { Feature } from "./features/feature";
@@ -14,7 +13,6 @@ export class FeatureRegistry {
         'EXPLODE_AND_CASCADE_FEATURE': ExplodeAndCascadeFeature,
         'PAYLINES_FEATURE': PaylinesFeature,
         'TRANSFORM_FEATURE': TransformFeature,
-        // 'SPIN_BUTTON_FEATURE': SpinButtonFeature,
         'FLYING_NUMBER_FEATURE': FlyingNumberOnRemove
     };
 

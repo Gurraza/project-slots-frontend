@@ -1,6 +1,6 @@
 import { ReelSymbol } from "./ReelSymbol";
 import { getPos, type GameConfig, type Position } from "./types";
-import { Container, Graphics } from "pixi.js";
+import { Container, Graphics, BlurFilter } from "pixi.js";
 import * as PIXI from "pixi.js"
 import { PixiPlugin } from "gsap/PixiPlugin"
 import { gsap } from "gsap"
@@ -26,6 +26,8 @@ export class Reel {
     private index: number
     private stage: Container
     private border: Graphics
+    private blurFilter: BlurFilter;
+    private blurMultiplier: number
 
     constructor(config: GameConfig, position: Position, index: number, stage: Container, gameContainer: Container) {
         this.config = config
@@ -47,7 +49,12 @@ export class Reel {
 
         this.border.alpha = 0;
         gameContainer.addChild(this.border);
-
+        this.blurFilter = new BlurFilter();
+        this.blurMultiplier = this.config.motionBlurStrength
+        this.blurFilter.blurX = 0;
+        this.blurFilter.blurY = 0;
+        // PixiJS v8 applies filters as an array
+        this.container.filters = [this.blurFilter];
         this.initSymbols()
     }
 
@@ -79,6 +86,7 @@ export class Reel {
                 break
             case "STOPPING":
             case "SPINNING":
+                this.blurFilter.blurY = this.speed * this.speedMultiplier * this.blurMultiplier;
                 let readyToLand: boolean = false
                 this.symbols.forEach((symbol) => {
                     symbol.y += delta * this.speed * this.speedMultiplier
@@ -168,6 +176,7 @@ export class Reel {
 
     private triggerLanding(): void {
         this.state = "LANDING";
+        this.blurFilter.blurY = 0; // Remove blur for the bounce sequence
         const sortedSymbols = this.getSorted();
 
         sortedSymbols.forEach((symbol, index) => {
