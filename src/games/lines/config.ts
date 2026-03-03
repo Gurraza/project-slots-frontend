@@ -37,7 +37,6 @@ const config: GameConfig = {
             }
         }
     },
-    symbolsBeforeStop: 0,
     reelSpinMode: "CONTINIOUS",
     motionBlurStrength: 8,
 

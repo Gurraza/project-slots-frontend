@@ -1,124 +1,33 @@
-import { Assets, Container, Sprite, Graphics, Texture } from "pixi.js";
-import { getPos, type GameConfig, type Position, type SymbolDef, type SymbolVisualState } from "./types";
-import gsap from "gsap"
-import { AnimationController } from "./AnimationController";
+import { ReelSymbol } from "./ReelSymbol";
+import { getPos, type GameConfig, type Position } from "./types";
+import { Container, Graphics } from "pixi.js";
+import * as PIXI from "pixi.js"
+import { PixiPlugin } from "gsap/PixiPlugin"
+import { gsap } from "gsap"
 
-export class ReelSymbol extends Container {
-    public symbolId: number = -1
-    private config: GameConfig
-    private stage: Container
+gsap.registerPlugin(PixiPlugin)
+PixiPlugin.registerPIXI(PIXI)
 
-    private bgSprite: Sprite
-    public symbolSprite: Sprite
-    constructor(symbolId: number, config: GameConfig, stage: Container) {
-        super()
-        this.config = config
-        this.stage = stage
-
-        this.bgSprite = new Sprite()
-        this.bgSprite.anchor.set(0.5)
-        this.addChild(this.bgSprite)
-
-        this.symbolSprite = new Sprite()
-        this.symbolSprite.anchor.set(0.5)
-        this.addChild(this.symbolSprite)
-
-        this.x = this.config.symbolWidth / 2
-
-        this.changeSymbolState(symbolId)
-    }
-
-    public changeSymbolState(newStateId: number) {
-        const s: SymbolDef | undefined = this.config.symbols.find(s => s.id == newStateId);
-        if (!s) throw new Error(`Bad id in changeSymbolState, tried: ${newStateId}`);
-
-        this.symbolId = s.id;
-
-        // Update textures independently
-        this.symbolSprite.texture = Assets.get(s.asset.alias);
-
-        // Assuming your SymbolDef has background logic. 
-        // If not, add a bgAlias to the definition or assign programmatically.
-        if (this.config.symbolBg && this.config.symbolBg.alias) {
-            this.bgSprite.texture = Assets.get(this.config.symbolBg.alias);
-            this.bgSprite.visible = true;
-        } else {
-            this.bgSprite.visible = false;
-        }
-
-        // Handle scaling on the container or individual sprites as needed
-        this.scale.set(1);
-        const ratioX = this.config.symbolWidth / this.symbolSprite.texture.width;
-        const ratioY = this.config.symbolHeight / this.symbolSprite.texture.height;
-        const baseScale = Math.min(ratioX, ratioY);
-        const finalScale = baseScale * s.scale;
-
-        // Apply scale to the symbol sprite, allowing the background to scale differently if needed
-        this.symbolSprite.scale.set(finalScale);
-
-        // Example: Make background fill the slot area
-        this.bgSprite.width = this.config.symbolWidth;
-        this.bgSprite.height = this.config.symbolHeight;
-    }
-
-    // public cchangeSymbolState(newStateId: number) {
-    //     const s: SymbolDef | undefined = this.config.symbols.find(s => s.id == newStateId)
-    //     if (!s) throw new Error("Bad id in changeSymbolState, tried: " + newStateId);
-    //     this.texture = Assets.get(s.asset.alias)
-    //     this.symbolId = s.id
-
-    //     this.scale.set(1);
-
-    //     const ratioX = this.config.symbolWidth / this.texture.width;
-    //     const ratioY = this.config.symbolHeight / this.texture.height;
-    //     const baseScale = Math.min(ratioX, ratioY);
-
-    //     const finalScale = baseScale * s.scale;
-
-    //     this.scale.set(finalScale);
-
-    //     this.anchor.set(0.5);
-    //     this.x = this.config.symbolWidth / 2;
-    // }
-    public getDefinition(): SymbolDef {
-        const def = this.config.symbols.find(s => s.id === this.symbolId);
-        if (!def) throw new Error("Missing symbol definition");
-        return def;
-    }
-
-    public async play(state: SymbolVisualState) {
-        await AnimationController.play(this, this.stage, state);
-    }
-
-    // get y(): number {
-    //     return this.position.y;
-    // }
-
-    // set y(value: number) {
-    //     this.position.y = value;
-    //     // Higher on screen (lower Y) gets a higher zIndex
-    //     this.zIndex = -value;
-    // }
-}
 
 export class Reel {
     public container: Container
-    public state: "IDLE" | "SPINNING" | "CASCADING" | "LANDING" = "IDLE"
+    public state: "IDLE" | "SPINNING" | "CASCADING" | "LANDING" | "STOPPING" = "IDLE"
     public slotHeight: number
     public symbols: ReelSymbol[] = []
-    private speed: number = 0
 
+    private speed: number = 0
+    private speedMultiplier: number = 1
     private config: GameConfig
     private totalHeight: number
     private viewBottom: number
-    private symbolsRotated: number = 0
+    private symbolsInjected: number = 0
     private stopSymbols: number[] = []
     private resolveSpin: (() => void) | null = null
     private index: number
     private stage: Container
-    // private symbolZIndex: number = 0
+    private border: Graphics
 
-    constructor(config: GameConfig, position: Position, index: number, stage: Container) {
+    constructor(config: GameConfig, position: Position, index: number, stage: Container, gameContainer: Container) {
         this.config = config
         this.container = new Container()
         // this.container.sortableChildren = true;
@@ -129,6 +38,16 @@ export class Reel {
         this.viewBottom = (this.config.rows + 1) * this.slotHeight + this.slotHeight / 2
         this.index = index
         this.stage = stage
+
+        this.border = new Graphics()
+        this.border
+            .setStrokeStyle({ width: 4, color: 0xFFD700, alignment: 0 }) // Golden color
+            .rect(containerPos.x, containerPos.y, this.config.symbolWidth, (this.config.symbolHeight + this.config.gapY) * this.config.rows)
+            .stroke();
+
+        this.border.alpha = 0;
+        gameContainer.addChild(this.border);
+
         this.initSymbols()
     }
 
@@ -158,33 +77,36 @@ export class Reel {
         switch (this.state) {
             case "IDLE":
                 break
+            case "STOPPING":
             case "SPINNING":
                 let readyToLand: boolean = false
                 this.symbols.forEach((symbol) => {
-                    symbol.y += delta * this.speed
+                    symbol.y += delta * this.speed * this.speedMultiplier
 
                     if (symbol.y > this.viewBottom) {
                         symbol.y -= this.totalHeight
 
-
-                        if (this.symbolsRotated >= this.config.symbolsBeforeStop + (this.config.staggerTime.end * this.index)) {
-                            const targetId = this.stopSymbols[this.stopSymbols.length - 1 - (this.symbolsRotated - (this.config.symbolsBeforeStop + (this.config.staggerTime.end * this.index)))]
-                            if (targetId != undefined) {
-                                symbol.changeSymbolState(targetId)
-                            }
-                            else {
-                                symbol.changeSymbolState(this.getRandomSymbolId())
-                            }
-                        }
-                        else {
+                        if (this.state == "SPINNING") {
                             symbol.changeSymbolState(this.getRandomSymbolId())
                         }
+                        else if (this.state == "STOPPING") {
+                            // The Orchestrator has commanded a stop. Begin injecting the result.
+                            // Inject symbols in reverse order (bottom-up) as they come in from the top
+                            if (this.symbolsInjected < this.config.rows) {
+                                const targetId = this.stopSymbols[this.stopSymbols.length - 1 - this.symbolsInjected];
+                                symbol.changeSymbolState(targetId !== undefined ? targetId : this.getRandomSymbolId());
+                            } else {
+                                // The top invisible symbol or overflow symbols
+                                symbol.changeSymbolState(this.getRandomSymbolId());
+                            }
 
-                        if (this.symbolsRotated - (this.config.symbolsBeforeStop + (this.config.staggerTime.end * this.index)) == this.config.rows) {
-                            readyToLand = true
+                            this.symbolsInjected++;
+
+                            // Once we've injected enough symbols to fill the visible grid, trigger the snap/bounce
+                            if (this.symbolsInjected >= this.config.rows + 1) {
+                                readyToLand = true;
+                            }
                         }
-
-                        this.symbolsRotated++
                     }
                 })
                 if (readyToLand) {
@@ -201,9 +123,9 @@ export class Reel {
         return this.config.symbols[Math.floor(Math.random() * this.config.symbols.length)].id
     }
 
-    async spin(stopSymbols: number[]): Promise<void> {
-        this.symbolsRotated = 0
-        this.stopSymbols = stopSymbols
+    async spin(): Promise<void> {
+        this.symbolsInjected = 0
+        this.stopSymbols = []
 
         // gsap.to(this, {
         //     speed: this.config.spinSpeed,
@@ -215,7 +137,7 @@ export class Reel {
         gsap.to(this.symbols, {
             y: `-=${this.config.windup.pixels}`,
             duration: this.config.windup.time,
-            delay: this.config.staggerTime.start * this.index,
+            delay: this.config.staggerTime.start / 1000 * this.index,
             ease: this.config.windup.ease,
             onComplete: () => {
                 this.state = "SPINNING";
@@ -234,9 +156,13 @@ export class Reel {
         });
     }
 
-    private snapToGrid(): void {
-        this.getSorted().forEach((symbol, i) => {
-            symbol.y = (i - 1) * this.slotHeight + ((this.config.symbolHeight) / 2);
+    public commandStop(stopSymbols: number[]): Promise<void> {
+        this.stopSymbols = stopSymbols;
+        this.symbolsInjected = 0;
+        this.state = "STOPPING";
+
+        return new Promise((resolve) => {
+            this.resolveSpin = resolve;
         });
     }
 
@@ -251,28 +177,25 @@ export class Reel {
                 onComplete: () => {
                     if (index === sortedSymbols.length - 1) {
                         this.state = "IDLE";
-                        this.snapToGrid()
-                        this.speed = 0
+                        this.snapToGrid();
+                        this.speed = 0;
                         if (this.resolveSpin) {
                             this.resolveSpin();
                             this.resolveSpin = null;
                         }
                     }
                 }
-            })
+            });
 
-            // 1. Deceleration Phase (slow down to target)
             tl.to(symbol, {
                 y: destY + this.config.bounce.pixels,
                 duration: this.config.spinDeacceleration,
                 ease: "power1.out"
-            })
-                // 3. Bounce Up Phase (return to resting position)
-                .to(symbol, {
-                    y: destY,
-                    duration: 0.15, // Short duration for snap back
-                    ease: "power1.in"
-                });
+            }).to(symbol, {
+                y: destY,
+                duration: 0.15,
+                ease: "power1.in"
+            });
         });
     }
 
@@ -295,16 +218,8 @@ export class Reel {
                 surviving.push(sorted[i + 1])
             }
         }
-
-        // 3. (Optional) Await explosion visual effects here
-        // await this.playExplodeEffects(exploded);
-
-
-        // 4. Update data and pre-position the exploded symbols at the top
         const matchPromises: Promise<void>[] = []
-        exploded.forEach((s: ReelSymbol, i) => {
-            //const global = this.stage.toLocal(s.getGlobalPosition());
-
+        exploded.forEach((s: ReelSymbol) => {
             matchPromises.push(s.play("highlight"))
         });
 
@@ -312,9 +227,7 @@ export class Reel {
 
         const promises: Promise<void>[] = []
         exploded.forEach((s: ReelSymbol, i) => {
-            //const global = this.stage.toLocal(s.getGlobalPosition());
-
-            promises.push(s.play("remove")) //playAnimation(.3, this.stage, '/games/clashofreels/animations/explosion.json', { x: global.x, y: global.y }))
+            promises.push(s.play("remove"))
             s.changeSymbolState(replaceIds[i]);
             // Move above the top visible slot
             s.y = -this.slotHeight * (exploded.length - i) + (this.config.symbolHeight / 2);
@@ -352,5 +265,112 @@ export class Reel {
 
         await Promise.all(dropPromises);
         this.snapToGrid();
+    }
+
+    private snapToGrid(): void {
+        this.getSorted().forEach((symbol, i) => {
+            symbol.y = (i - 1) * this.slotHeight + ((this.config.symbolHeight) / 2);
+        });
+    }
+
+    public dimReel(): void {
+        this.symbols.forEach((symbol: ReelSymbol) => {
+            gsap.to(symbol.symbolSprite, {
+                pixi: { tint: 0x666666 },
+                duration: 0.2,
+                ease: "none"
+            })
+            // if (symbol.bgSprite) {
+            //     symbol.bgSprite.tint = 0x666666;
+            // }
+        });
+    }
+
+    public removeDim(): void {
+        this.symbols.forEach(symbol => {
+            gsap.to(symbol.symbolSprite, {
+                pixi: { tint: 0xffffff },
+                duration: 0.2,
+                ease: "none"
+            })
+            // if (symbol.bgSprite) {
+            //     symbol.bgSprite.tint = 0xFFFFFF;
+            // }
+            gsap.killTweensOf(symbol.symbolSprite.scale);
+            gsap.to(symbol.symbolSprite.scale, {
+                x: symbol.symbolScale,
+                y: symbol.symbolScale,
+                duration: 0.2,
+                ease: "power2.out"
+            });
+        });
+    }
+
+    // Call this specifically for the target symbols you want to highlight
+    public highlightSymbol(rowIndex: number): void {
+        const sorted = this.getSorted();
+        // +1 because your index 0 is the hidden top symbol
+        const target = sorted[rowIndex + 1];
+        if (target) {
+            // target.symbolSprite.tint = 0xFFFFFF; // Keep it bright
+
+            gsap.to(target.symbolSprite, {
+                pixi: { tint: 0xffffff },
+                duration: 0.2,
+                ease: "none"
+            })
+            gsap.to(target.symbolSprite.scale, {
+                x: target.symbolScale * 1.15,
+                y: target.symbolScale * 1.15,
+                duration: 0.6,
+                repeat: -1,
+                yoyo: true,
+                ease: "sine.inOut",
+                id: `highlight_scale_${target.uid}` // Assuming ReelSymbol has a unique ID
+            });
+            // if (target.bgSprite) target.bgSprite.tint = 0xFFFFFF;
+            // Optionally play an animation state here
+            // target.play("anticipation_highlight"); 
+        }
+    }
+
+    public slowDownForAnticipation(): void {
+        // Decrease speed to create tension. 
+        // e.g., Drop to 40% of standard speed
+        gsap.to(this, {
+            speedMultiplier: .4,
+            duration: 0.2,
+            ease: "none"
+        });
+    }
+
+    public restoreSpeed(): void {
+        gsap.to(this, {
+            speedMultiplier: 1,
+            duration: 0.2,
+            ease: "none"
+        });
+    }
+
+    public showAnticipationBorder(): void {
+        gsap.to(this.border, {
+            alpha: 1,
+            duration: 0.3,
+            ease: "power2.out"
+        });
+
+        // Optional: Add a "pulse" effect for more impact
+        gsap.to(this.border, {
+            alpha: 0.5,
+            duration: 0.5,
+            repeat: -1,
+            yoyo: true,
+            ease: "sine.inOut"
+        });
+    }
+
+    public hideBorder(): void {
+        gsap.killTweensOf(this.border);
+        gsap.to(this.border, { alpha: 0, duration: 0.2 });
     }
 }

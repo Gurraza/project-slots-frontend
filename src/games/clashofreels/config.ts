@@ -37,15 +37,15 @@ const config: GameConfig = {
             }
         }
     },
-    symbolsBeforeStop: 0,
     reelSpinMode: "CONTINIOUS",
     motionBlurStrength: 8,
 
     spinSpeed: 25,
     spinAcceleration: .25,
     spinDeacceleration: .25,
+    spinTime: 1000,
     staggerTime: {
-        start: .1,
+        start: 100,
         end: 0,
     },
     windup: {
@@ -67,6 +67,7 @@ const config: GameConfig = {
     },
     pathPrefix: "",
     features: [
+        "SPIN_START",
         "FLYING_NUMBER_FEATURE",
         "EXPLODE_AND_CASCADE_FEATURE",
         "SPIN_BUTTON_FEATURE",
@@ -75,8 +76,8 @@ const config: GameConfig = {
         {
             id: 0,
             asset: {
-                src: "/games/clashofreels/clash_symbols_v3/barbarian.png",
-                alias: "barbarian",
+                src: "/games/clashofreels/clash_symbols_v3/wizzard.png",
+                alias: "wizzard",
             },
             scale: .8,
         },
@@ -99,40 +100,48 @@ const config: GameConfig = {
         {
             id: 3,
             asset: {
-                src: "/games/clashofreels/clash_symbols_v3/amatyst.png",
-                alias: "amatyst",
+                src: "/games/clashofreels/clash_symbols_v3/Ametist.png",
+                alias: "ametist",
             },
             scale: .8,
         },
         {
             id: 4,
             asset: {
-                src: "/games/clashofreels/clash_symbols_v3/amber.png",
-                alias: "amber",
+                src: "/games/clashofreels/clash_symbols_v3/Guld.png",
+                alias: "guld",
             },
             scale: .8,
         },
         {
             id: 5,
             asset: {
-                src: "/games/clashofreels/clash_symbols_v3/saphire.png",
-                alias: "saphire",
+                src: "/games/clashofreels/clash_symbols_v3/Akvamarin.png",
+                alias: "akvamarin",
             },
             scale: .8,
         },
         {
             id: 6,
             asset: {
-                src: "/games/clashofreels/clash_symbols_v3/prince.png",
-                alias: "prince",
+                src: "/games/clashofreels/clash_symbols_v3/Safir.png",
+                alias: "safir",
             },
             scale: .8,
         },
         {
             id: 63,
             asset: {
-                src: "/games/clashofreels/clash_symbols_v3/trophy.png",
-                alias: "trophy",
+                src: "/games/clashofreels/clash_symbols_v3/Scatter.png",
+                alias: "scatter",
+            },
+            scale: .8,
+        },
+        {
+            id: 60,
+            asset: {
+                src: "/games/clashofreels/clash_symbols_v3/Wild.png",
+                alias: "wild",
             },
             scale: .8,
         },

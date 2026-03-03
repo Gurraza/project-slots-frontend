@@ -58,7 +58,6 @@ export class PaylinesFeature extends Feature {
     }
 
     async drawPayline(linePath: number[], len: number, lineId: number): Promise<void> {
-        console.log(`len: ${len}`)
         const { symbolWidth, symbolHeight, gapX, gapY } = this.game.config
         const g = new Graphics();
         this.lineLayer.addChild(g);

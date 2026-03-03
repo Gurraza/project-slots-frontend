@@ -12,7 +12,6 @@ export class TransformFeature extends Feature {
 
     async onEvent(event: TimelineEvent): Promise<void> {
         const meta: { positions: Point[], newId: number } = event.meta;
-        console.log(meta)
         // Map each position to a function that returns a Promise-wrapped timeline
         const tasks = meta.positions.map(pos => () => {
             return new Promise<void>((resolve) => {

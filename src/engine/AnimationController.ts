@@ -1,5 +1,6 @@
-import type { ReelSymbol } from "./Reel";
+
 import { AnimationRegistry } from "./AnimationRegistry";
+import type { ReelSymbol } from "./ReelSymbol";
 import type { SymbolVisualState } from "./types";
 import type { Container } from "pixi.js";
 

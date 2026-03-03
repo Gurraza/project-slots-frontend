@@ -1,9 +1,10 @@
 // src/engine/GameController.ts
 import { Application, Container, Assets, Sprite } from 'pixi.js';
-import { getPos, type Asset, type GameConfig, type GameState, type Grid, type Position, type Timeline } from './types.ts';
-import { Reel, ReelSymbol } from './Reel.ts';
+import { getPos, type Asset, type GameConfig, type GameState, type Grid, type Position, type Timeline, type TimelineEvent } from './types.ts';
+import { Reel } from './Reel.ts';
 import { UI } from './UI.ts';
-import { featureRegistry } from './features/FeatureRegistry.ts';
+import { FeatureRegistry } from './FeatureRegistry.ts';
+import type { ReelSymbol } from './ReelSymbol.ts';
 
 export class GameController {
     public config: GameConfig
@@ -27,10 +28,15 @@ export class GameController {
             app: app,
             stage: app.stage,
             state: "IDLE",
-            features: config.features.map((type) => {
-                const key = type as keyof typeof featureRegistry
-                const f = featureRegistry[key]
-                return new f(this)
+            features: config.features.map((key) => {
+                const FeatureClass = FeatureRegistry.get(key);
+
+                if (!FeatureClass) {
+                    throw new Error(`Feature "${key}" not found in FeatureRegistry. Did you forget to register it?`);
+                }
+
+                // FeatureClass is the constructor, 'this' is the GameController instance
+                return new FeatureClass(this);
             }),
             timeline: null
         }
@@ -65,7 +71,6 @@ export class GameController {
             toLoad.push(a.alias)
         })
         await Assets.load(toLoad)
-        console.log(`Loaded ${toLoad}`)
     }
 
     private setBackground(bg: string = "bg") {
@@ -110,7 +115,7 @@ export class GameController {
         this.gameState.stage.addChild(this.gameContainer);
 
         for (let i = 0; i < this.config.cols; i++) {
-            const reel: Reel = new Reel(this.config, { left: i * (this.config.symbolWidth + this.config.gapX), top: 0, }, i, this.stage)
+            const reel: Reel = new Reel(this.config, { left: i * (this.config.symbolWidth + this.config.gapX), top: 0, }, i, this.stage, this.gameContainer)
             this.reels.push(reel)
             this.gameContainer.addChild(reel.container)
         }
@@ -140,7 +145,7 @@ export class GameController {
             }
 
             const rawData = await response.json();
-            return rawData
+            return rawData.map((data: any, i: number) => ({ ...data, index: i }))
 
         } catch (error) {
             console.error('Failed to fetch timeline data:', error);
@@ -166,7 +171,6 @@ export class GameController {
         this.gameState.timeline = timeline
         if (this.gameState.state == "ACTIVE") return
         this.gameState.state = "ACTIVE"
-        // this.reels.forEach((r) => r.spin([0, 0, 0, 0, 0, 0, 0]))
         console.log("Symbols", this.config.symbols.map(s => ({ id: s.id, name: s.asset.alias })))
         console.log("Timeline", timeline)
 
@@ -176,9 +180,6 @@ export class GameController {
 
         for (let i = 0; i < timeline.length; i++) {
             const event = timeline[i]
-            if (event.type === "SPIN_START") {
-                await this.spinReels(event.grid)
-            }
             const featurePromises: Promise<void>[] = [];
 
             for (const feature of this.gameState.features) {
@@ -200,16 +201,11 @@ export class GameController {
         this.gameState.state = "IDLE"
     }
 
-    private async spinReels(g: Grid) {
-        const promises: Promise<void>[] = []
-        this.reels.forEach((r, i) => {
-            if (!this.gameState.timeline) {
-                throw new Error("No timeline in spinReels");
-
-            }
-            promises.push(r.spin(g[i]))
-        })
-        await Promise.all(promises)
+    public getTimelineEvent(index: number): TimelineEvent | null {
+        if (this.gameState.timeline == null || index >= this.gameState.timeline.length || index < 0) {
+            return null
+        }
+        return this.gameState.timeline[index]
     }
 
     private handleSpinPress = async (): Promise<void> => { this.play() }

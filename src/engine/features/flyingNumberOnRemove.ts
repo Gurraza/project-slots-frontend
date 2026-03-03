@@ -9,11 +9,6 @@ export class FlyingNumberOnRemove extends Feature {
         super(game, "FLYING_NUMBER_FEATURE", "EXPLODE_AND_CASCADE_FEATURE")
     }
 
-    init(): void {
-        super.init()
-        console.log(this.eventType)
-    }
-
     async onEvent(event: TimelineEvent): Promise<void> {
         const { explosions } = event.meta
         await new Promise(r => setTimeout(r, 400))

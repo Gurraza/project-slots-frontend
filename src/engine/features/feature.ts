@@ -12,11 +12,9 @@ export class Feature {
     }
 
     async onEvent(event: TimelineEvent) {
-        console.log(`Feature event of ${this.id} happened data: `, event)
     }
 
     init() {
-        console.log(`Init on feature: ${this.id}`)
     }
 
     public onSpinStart() {

@@ -24,7 +24,7 @@ export type GameConfig = Readonly<{
             asset: Asset
         },
     }
-    symbolsBeforeStop: number
+    spinTime: number
     reelSpinMode: "CONTINIOUS" | "DROP_IN_DROP_OUT" | "INVISIBLE_FLY_BY"
     motionBlurStrength: number
     spinSpeed: number
@@ -80,6 +80,7 @@ export type SymbolDef = {
 export type Timeline = TimelineEvent[];
 
 export interface TimelineEvent {
+    index: number
     type: string
     grid: Grid
     win: number
