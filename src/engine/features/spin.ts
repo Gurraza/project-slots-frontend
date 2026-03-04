@@ -29,6 +29,10 @@ export class SpinFeature extends Feature {
         } else {
             await this.executeStandardStop(event.grid);
         }
+
+        const landingAnimationPromises: Promise<void>[] = []
+        this.game.reels.forEach(r => r.symbols.forEach(s => s.play("land")))
+        await Promise.all(landingAnimationPromises)
     }
 
     private async executeStandardStop(grid: number[][]): Promise<void> {

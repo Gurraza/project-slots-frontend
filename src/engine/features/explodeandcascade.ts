@@ -21,7 +21,7 @@ export class ExplodeAndCascadeFeature extends Feature {
         const meta: ClusterMeta = event.meta
         // await new Promise(r => setTimeout(r, 1000))
         const promises: Promise<void>[] = []
-
+        meta.explosions.sort((a, b) => a.y - b.y);
         this.game.reels.forEach((reel: Reel, index: number) => {
             const indices: number[] = []
             const replacements: number[] = []

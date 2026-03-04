@@ -15,12 +15,12 @@ export class TransformFeature extends Feature {
         // Map each position to a function that returns a Promise-wrapped timeline
         const tasks = meta.positions.map(pos => () => {
             return new Promise<void>((resolve) => {
-                const symbol = this.game.getSymbol(pos.x, pos.y);
+                const symbolContainer = this.game.getSymbol(pos.x, pos.y);
                 let targetScale = 1;
 
                 const tl = gsap.timeline({ onComplete: resolve });
 
-                tl.to(symbol.scale, {
+                tl.to(symbolContainer.symbolSprite.scale, {
                     x: 0,
                     y: 0,
                     duration: this.replaceTime,
@@ -28,12 +28,12 @@ export class TransformFeature extends Feature {
                 });
 
                 tl.call(() => {
-                    symbol.changeSymbolState(meta.newId);
-                    targetScale = symbol.scale.x;
-                    symbol.scale.set(0);
+                    symbolContainer.changeSymbolState(meta.newId);
+                    targetScale = symbolContainer.symbolSprite.scale.x;
+                    symbolContainer.symbolSprite.scale.set(0);
                 });
 
-                tl.to(symbol.scale, {
+                tl.to(symbolContainer.symbolSprite.scale, {
                     x: () => targetScale,
                     y: () => targetScale,
                     duration: 0.35,

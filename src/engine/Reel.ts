@@ -51,8 +51,9 @@ export class Reel {
         gameContainer.addChild(this.border);
         this.blurFilter = new BlurFilter();
         this.blurMultiplier = this.config.motionBlurStrength
-        this.blurFilter.blurX = 0;
-        this.blurFilter.blurY = 0;
+        this.blurFilter.strengthX = 0;
+        this.blurFilter.strengthY = 0;
+        this.blurFilter.resolution = 2
         // PixiJS v8 applies filters as an array
         this.container.filters = [this.blurFilter];
         this.initSymbols()
@@ -86,7 +87,7 @@ export class Reel {
                 break
             case "STOPPING":
             case "SPINNING":
-                this.blurFilter.blurY = this.speed * this.speedMultiplier * this.blurMultiplier;
+                this.blurFilter.strengthY = this.speed * this.speedMultiplier * this.blurMultiplier;
                 let readyToLand: boolean = false
                 this.symbols.forEach((symbol) => {
                     symbol.y += delta * this.speed * this.speedMultiplier
@@ -176,7 +177,7 @@ export class Reel {
 
     private triggerLanding(): void {
         this.state = "LANDING";
-        this.blurFilter.blurY = 0; // Remove blur for the bounce sequence
+        this.blurFilter.strengthY = 0; // Remove blur for the bounce sequence
         const sortedSymbols = this.getSorted();
 
         sortedSymbols.forEach((symbol, index) => {
@@ -243,7 +244,7 @@ export class Reel {
         });
 
         await Promise.all(promises)
-
+        // await new Promise(r => setTimeout(r, 1000))
         // 5. Combine new top symbols with surviving symbols for the final grid layout
         // New symbols drop to the top rows; surviving symbols keep their relative order
         const newGridLayout = [...exploded, ...surviving]

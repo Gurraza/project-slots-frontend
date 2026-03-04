@@ -1,8 +1,8 @@
-import { Sprite, Text, type Container, type ContainerChild } from "pixi.js";
+import { Text } from "pixi.js";
 import type { GameController } from "../GameController";
 import { Feature } from "./feature";
 import gsap from "gsap"
-import { getPos, type Point, type TimelineEvent } from "../types";
+import { type Point, type TimelineEvent } from "../types";
 
 export class FlyingNumberOnRemove extends Feature {
     constructor(game: GameController) {
@@ -20,9 +20,9 @@ export class FlyingNumberOnRemove extends Feature {
 
     placeWin(point: Point, multiplier: number) {
         const text = new Text({
-            text: multiplier.toFixed(2) + "€",
+            text: multiplier.toFixed(2) + "kr",
             style: {
-                fontSize: 24, // Start slightly larger
+                fontSize: 14, // Start slightly larger
                 fill: 0xffffff, // Yellow/Gold usually looks better for "wins" than pure red
                 fontFamily: 'Arial Black',
                 fontWeight: 'bold',

@@ -71,6 +71,8 @@ const config: GameConfig = {
         "FLYING_NUMBER_FEATURE",
         "EXPLODE_AND_CASCADE_FEATURE",
         "SPIN_BUTTON_FEATURE",
+        "TRANSFORM_FEATURE",
+        "TRIBUTE_HARVEST"
     ],
     symbols: [
         {
@@ -92,40 +94,48 @@ const config: GameConfig = {
         {
             id: 2,
             asset: {
-                src: "/games/clashofreels/clash_symbols_v3/dragon.png",
-                alias: "dragon",
+                src: "/games/clashofreels/clash_symbols_v3/minion.png",
+                alias: "minion",
             },
             scale: .8,
         },
         {
             id: 3,
             asset: {
-                src: "/games/clashofreels/clash_symbols_v3/Ametist.png",
-                alias: "ametist",
-            },
-            scale: .8,
-        },
-        {
-            id: 4,
-            asset: {
-                src: "/games/clashofreels/clash_symbols_v3/Guld.png",
-                alias: "guld",
-            },
-            scale: .8,
-        },
-        {
-            id: 5,
-            asset: {
                 src: "/games/clashofreels/clash_symbols_v3/dragon.png",
                 alias: "dragon",
             },
             scale: .8,
         },
         {
-            id: 6,
+            id: 4,
             asset: {
                 src: "/games/clashofreels/clash_symbols_v3/Safir.png",
                 alias: "safir",
+            },
+            scale: .8,
+        },
+        {
+            id: 5,
+            asset: {
+                src: "/games/clashofreels/clash_symbols_v3/Smaragd.png",
+                alias: "smaragd",
+            },
+            scale: .8,
+        },
+        {
+            id: 6,
+            asset: {
+                src: "/games/clashofreels/clash_symbols_v3/Onyx.png",
+                alias: "onyx",
+            },
+            scale: .8,
+        },
+        {
+            id: 7,
+            asset: {
+                src: "/games/clashofreels/clash_symbols_v3/Rubin.png",
+                alias: "rubin",
             },
             scale: .8,
         },
@@ -144,6 +154,58 @@ const config: GameConfig = {
                 alias: "wild",
             },
             scale: .8,
+        },
+        {
+            id: 61,
+            asset: {
+                src: "/games/clashofreels/clash_symbols_v3/Castle.png",
+                alias: "castle",
+            },
+            scale: 1.2,
+        },
+        {
+            id: 10,
+            asset: {
+                src: "/games/clashofreels/resources_export/Wizzard_Fire.png",
+                alias: "wizzardfire",
+            },
+            animations: {
+                highlight: "fire_highlight"
+            },
+            scale: 1,
+        },
+        {
+            id: 11,
+            asset: {
+                src: "/games/clashofreels/resources_export/Orch_Fire.png",
+                alias: "orchfire",
+            },
+            animations: {
+                highlight: "fire_highlight"
+            },
+            scale: 1,
+        },
+        {
+            id: 12,
+            asset: {
+                src: "/games/clashofreels/resources_export/Minion_Fire.png",
+                alias: "minionfire",
+            },
+            animations: {
+                land: "fire_highlight"
+            },
+            scale: 1,
+        },
+        {
+            id: 13,
+            asset: {
+                src: "/games/clashofreels/resources_export/Dragon_Fire.png",
+                alias: "dragonfire",
+            },
+            animations: {
+                highlight: "fire_highlight"
+            },
+            scale: 1,
         },
     ],
 };

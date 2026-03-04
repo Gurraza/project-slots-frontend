@@ -29,4 +29,24 @@ export function registerClashOfReelsAnimations() {
         );
     });
 
+    AnimationRegistry.register("fire_highlight", async (target: Sprite, stage: Container) => {
+        // if (!target || !target.parent) return
+        // const global = target.parent.toGlobal(target.position);
+
+        // await playAnimation(
+        //     0.4,
+        //     stage,
+        //     "/games/clashofreels/animations/explosion.json",
+        //     { x: global.x, y: global.y }
+        // );
+        return new Promise(resolve => {
+            gsap.to(target, {
+                alpha: 0.6,
+                duration: 0.1,
+                yoyo: true,
+                repeat: 3,
+                onComplete: resolve
+            });
+        });
+    });
 }
