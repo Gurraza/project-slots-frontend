@@ -5,6 +5,7 @@ import { TransformFeature } from "./features/transform";
 import { SpinFeature } from "./features/spin";
 import type { Feature } from "./features/feature";
 import { TributeHarvestFeature } from "./features/tributeharvest";
+import { TotalWinFeature } from "./features/totalwin";
 
 type FeatureConstructor = new (...args: any[]) => Feature;
 export class FeatureRegistry {
@@ -15,7 +16,8 @@ export class FeatureRegistry {
         'PAYLINES_FEATURE': PaylinesFeature,
         'TRANSFORM_FEATURE': TransformFeature,
         'FLYING_NUMBER_FEATURE': FlyingNumberOnRemove,
-        'TRIBUTE_HARVEST': TributeHarvestFeature
+        'TRIBUTE_HARVEST': TributeHarvestFeature,
+        'TOTAL_WIN': TotalWinFeature
     };
 
     public static register(key: string, feature: FeatureConstructor): void {

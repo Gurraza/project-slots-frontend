@@ -15,7 +15,7 @@ export class SpinButtonFeature extends Feature {
         super.init()
 
         this.game.place("/games/clashofreels/exp/_0001_SpinBtnOuter.png", { bottom: 60, left: this.game.config.width / 2 + 0 }).then((sprite: Container) => {
-            sprite.zIndex = 100
+            sprite.zIndex = 5
             this.sprite = sprite
         })
     }

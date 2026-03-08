@@ -16,6 +16,10 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
          style="padding: 20px 40px; background: #2a2a2a; border: 1px solid #444; color: white; text-decoration: none; border-radius: 8px; font-size: 1.2rem; transition: background 0.2s;">
         Lines Game
       </a>
+      <a href="/games/neoncity/" 
+         style="padding: 20px 40px; background: #2a2a2a; border: 1px solid #444; color: white; text-decoration: none; border-radius: 8px; font-size: 1.2rem; transition: background 0.2s;">
+        Neon City
+      </a>
     </div>
 
   </div>

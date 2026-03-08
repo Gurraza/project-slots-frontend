@@ -16,7 +16,7 @@ export class TransformFeature extends Feature {
         const tasks = meta.positions.map(pos => () => {
             return new Promise<void>((resolve) => {
                 const symbolContainer = this.game.getSymbol(pos.x, pos.y);
-                let targetScale = 1;
+                let targetScale = 1
 
                 const tl = gsap.timeline({ onComplete: resolve });
 
@@ -36,6 +36,9 @@ export class TransformFeature extends Feature {
                 tl.to(symbolContainer.symbolSprite.scale, {
                     x: () => targetScale,
                     y: () => targetScale,
+                    onComplete: () => {
+                        symbolContainer.symbolScale = targetScale
+                    },
                     duration: 0.35,
                     ease: "back.out(2)"
                 });

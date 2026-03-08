@@ -1,69 +1,124 @@
 import { Text } from "pixi.js";
 import type { GameController } from "../GameController";
 import { Feature } from "./feature";
-import gsap from "gsap"
+import gsap from "gsap";
 import { type Point, type TimelineEvent } from "../types";
 
 export class FlyingNumberOnRemove extends Feature {
     constructor(game: GameController) {
-        super(game, "FLYING_NUMBER_FEATURE", "EXPLODE_AND_CASCADE_FEATURE")
+        super(game, "FLYING_NUMBER_FEATURE", "EXPLODE_AND_CASCADE_FEATURE");
     }
 
     async onEvent(event: TimelineEvent): Promise<void> {
-        const { explosions } = event.meta
-        await new Promise(r => setTimeout(r, 400))
-        explosions.forEach((explosion: Point) => {
-            this.placeWin({ x: explosion.x, y: explosion.y }, event.win / explosions.length)
-        })
-        return new Promise(r => r())
-    }
+        const { explosions } = event.meta;
+        await new Promise(r => setTimeout(r, 400));
 
-    placeWin(point: Point, multiplier: number) {
-        const text = new Text({
-            text: multiplier.toFixed(2) + "kr",
+        const targetX = this.game.config.width / 2;
+        const targetY = this.game.config.height / 2 - this.game.config.symbolHeight / 2;
+
+        const centralText = new Text({
+            text: "0.00kr",
             style: {
-                fontSize: 14, // Start slightly larger
-                fill: 0xffffff, // Yellow/Gold usually looks better for "wins" than pure red
+                fontSize: 48,
+                fill: 0xffffff,
                 fontFamily: 'Arial Black',
                 fontWeight: 'bold',
-                stroke: { color: 0x000000, width: 2 },
-                dropShadow: { color: 0x000000, blur: 4, distance: 2 }
+                // stroke: { color: 0x000000, width: 4 },
+                dropShadow: { color: 0x000000, blur: 10, distance: 3 }
             }
         });
 
-        // const symbol = this.game.getSymbol(point.x, point.y);
-        // const pos = this.game.stage.toLocal(symbol.getGlobalPosition());
+        centralText.anchor.set(0.5);
+        centralText.position.set(targetX, targetY);
+        centralText.alpha = 0; // Remains 0 until first impact
+        centralText.scale.set(1);
+        this.game.stage.addChild(centralText);
 
-        const y = (this.game.config.symbolHeight + this.game.config.gapY) * point.y
-        const x = this.game.config.symbolWidth / 2
-        text.position.set(x, y);
-        text.anchor.set(0.5);
-        text.scale.set(0); // Start at 0 for a "pop" effect
-        this.game.reels[point.x].container.addChild(text);
+        let currentTotal = 0;
+        const valuePerParticle = event.win / explosions.length;
 
-        const tl = gsap.timeline({
-            onComplete: () => text.destroy()
+        const flightPromises = explosions.map((explosion: Point) => {
+            return this.placeWin(explosion, valuePerParticle, centralText, () => {
+                currentTotal += valuePerParticle;
+                centralText.text = currentTotal.toFixed(2) + "kr";
+                centralText.alpha = 1; // Becomes visible on impact
+
+                gsap.killTweensOf(centralText.scale);
+                gsap.fromTo(centralText.scale,
+                    { x: 1.3, y: 1.3 },
+                    { x: 1, y: 1, duration: 0.2, ease: "back.out(2)" }
+                );
+            });
         });
 
-        // 1. The "Pop" In - Quick scale up with an overshoot (Back ease)
-        tl.to(text.scale, {
-            x: 1.2,
-            y: 1.2,
-            duration: 0.3,
-            ease: "back.out(1.7)"
+        await Promise.all(flightPromises);
+
+        centralText.text = event.win.toFixed(2) + "kr";
+
+        const finalTl = gsap.timeline({
+            onComplete: () => centralText.destroy()
         });
 
-        // 2. The Float & Fade - Move upward smoothly
-        tl.to(text, {
-            y: "-=80", // Move UP, not down
-            duration: 0.8,
-            ease: "power1.out"
-        }, "-=0"); // Start slightly before pop finishes
+        finalTl.to(centralText.scale, { x: 1.4, y: 1.4, duration: 0.3, ease: "power2.out" })
+            .to(centralText.scale, { x: 1, y: 1, duration: 0.2, ease: "power2.in" })
+            .to(centralText, { y: "-=100", alpha: 0, duration: 0.3, ease: "power2.in" }, "+=0.2");
 
-        // 3. The Exit - Fade out at the very end
-        tl.to(text, {
-            alpha: 0,
-            duration: 0.3,
-        }, "-=0.3");
+        await finalTl;
+    }
+
+    placeWin(point: Point, multiplier: number, centralText: Text, onImpact: () => void): Promise<void> {
+        return new Promise((resolve) => {
+            const text = new Text({
+                text: multiplier.toFixed(2) + "kr",
+                style: {
+                    fontSize: 20,
+                    fill: 0xffffff,
+                    fontFamily: 'Arial Black',
+                    fontWeight: 'bold',
+                    stroke: { color: 0x000000, width: 2 },
+                    dropShadow: { color: 0x000000, blur: 4, distance: 2 }
+                }
+            });
+
+            const symbol = this.game.getSymbol(point.x, point.y);
+            const pos = this.game.stage.toLocal(symbol.getGlobalPosition());
+
+            const x = pos.x;
+            const y = (point.y + 2) * (this.game.config.symbolHeight + this.game.config.gapY);
+
+            text.position.set(x, y);
+            text.anchor.set(0.5);
+            text.scale.set(.7);
+            text.alpha = 0;
+            this.game.stage.addChild(text);
+
+            const tl = gsap.timeline({
+                onComplete: () => {
+                    text.destroy();
+                    onImpact();
+                    resolve();
+                }
+            });
+
+            tl.to(text, {
+                alpha: 1,
+                duration: .75,
+                ease: "power1.in"
+            });
+
+            tl.to(text.scale, {
+                x: 1,
+                y: 1,
+                duration: .75,
+                ease: "power1.in"
+            }, "<");
+
+            tl.to(text.position, {
+                x: centralText.position.x,
+                y: centralText.position.y,
+                duration: .75,
+                ease: "power4.in"
+            }, "<");
+        });
     }
 }

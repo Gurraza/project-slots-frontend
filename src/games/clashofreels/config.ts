@@ -72,7 +72,8 @@ const config: GameConfig = {
         "EXPLODE_AND_CASCADE_FEATURE",
         "SPIN_BUTTON_FEATURE",
         "TRANSFORM_FEATURE",
-        "TRIBUTE_HARVEST"
+        "TRIBUTE_HARVEST",
+        "TOTAL_WIN",
     ],
     symbols: [
         {

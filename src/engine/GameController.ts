@@ -11,11 +11,13 @@ export class GameController {
     public gameContainer: Container
     public stage: Container
     public reels: Reel[] = []
+    public app: Application
 
     private gameState: GameState
     private ui: UI
     private bg: Sprite
     constructor(app: Application, config: GameConfig) {
+        this.app = app
         this.config = config;
 
         this.gameContainer = new Container()
@@ -127,7 +129,7 @@ export class GameController {
         const url = new URL(this.config.endpoints.spin, "http://localhost:8080")
         // const url = new URL(this.config.endpoints.spin, "http://192.168.68.102:8080")
         url.searchParams.append("gameId", this.config.gameId)
-        if (seed) {
+        if (seed) { //?seed=541252984671129
             url.searchParams.set('seed', seed);
         }
         const endpoint = url.toString();
