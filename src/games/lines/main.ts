@@ -1,5 +1,10 @@
 import { GameWrapper } from '../../engine/GameWrapper.ts';
 import config from './config.ts';
+import { uiInit } from './ui.ts';
+
+import { FeatureRegistry } from '../../engine/FeatureRegistry.ts';
+import { registerAnimations } from './registerAnimations.ts';
+import { SpinButtonFeature } from "../../engine/features/spinbutton.ts"
 
 async function bootstrap() {
     const container = document.querySelector<HTMLDivElement>('#game-container');
@@ -7,9 +12,15 @@ async function bootstrap() {
     if (!container) {
         throw new Error("Game container not found. Check your index.html.");
     }
-
+    await init()
+    registerAnimations()
     const engine = new GameWrapper(container, config);
-    await engine.init();
+    const game = await engine.init();
+    uiInit(game.ui)
 }
 
 bootstrap();
+
+async function init() {
+    FeatureRegistry.register("SPIN_BUTTON_FEATURE", SpinButtonFeature)
+}

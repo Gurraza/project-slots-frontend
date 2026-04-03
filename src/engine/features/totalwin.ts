@@ -4,240 +4,308 @@ import type { GameController } from "../GameController";
 import { Feature } from "./feature";
 import { type TimelineEvent } from "../types";
 
-type WinTier = "REGULAR" | "BIG" | "MEGA" | "EPIC";
+type WinTier = "SMALL" | "BIG" | "MEGA" | "EPIC";
 
-interface Particle {
+interface CoinParticle {
     sprite: Graphics;
     vx: number;
     vy: number;
-    life: number;
+    spinSpeed: number;
+    spinAngle: number;
 }
 
 export class TotalWinFeature extends Feature {
     private overlay: Container;
     private backdrop: Graphics;
     private winText: Text;
-    private particleContainer: Container;
+    private coinContainer: Container;
 
-    private targetValue: number = 0;
-    private currentTier: WinTier = "REGULAR";
-    private betAmount: number = 1;
+    private resolveSpin: (() => void) | null = null;
+    private countUpTween: gsap.core.Tween | null = null;
+    private autoCloseTimer: gsap.core.Tween | null = null;
 
-    private tallyTween: gsap.core.Tween | null = null;
-    private particles: Particle[] = [];
+    private targetWin: number = 0;
+    private currentTier: WinTier = "SMALL";
+    private isCounting: boolean = false;
 
-    // PixiJS v8 Context assumption
+    private coins: CoinParticle[] = [];
+    private coinSpawnTimer: number = 0;
+
+    private readonly TIER_THRESHOLDS = {
+        SMALL: 0,
+        BIG: 20,
+        MEGA: 50,
+        EPIC: 100
+    };
+
     private get app() {
         return (this.game as any).app;
     }
 
     constructor(game: GameController) {
         super(game, "TOTAL_WIN", "GAME_OVER");
+
         this.overlay = new Container();
         this.overlay.visible = false;
-        this.overlay.zIndex = 100
+        this.overlay.zIndex = 100;
 
-        // 1. Backdrop
+        const width = this.game.config.width;
+        const height = this.game.config.height;
+
         this.backdrop = new Graphics()
-            .rect(0, 0, this.game.config.width, this.game.config.height)
-            .fill({ color: 0x000000, alpha: 0.8 });
+            .rect(0, 0, width, height)
+            .fill({ color: 0x000000, alpha: 0.85 });
 
         this.backdrop.eventMode = 'static';
         this.backdrop.cursor = 'pointer';
-        this.backdrop.on('pointerdown', this.skipPresentation.bind(this));
+        this.backdrop.on('pointerdown', this.handleInteraction.bind(this));
 
-        // 2. Particle Container
-        this.particleContainer = new Container();
+        this.coinContainer = new Container();
 
-        // 3. Text Display
-        const style = new TextStyle({
+        const winStyle = new TextStyle({
             fontFamily: 'Arial',
-            fontSize: 72,
+            fontSize: 120,
             fontWeight: 'bold',
-            fill: 0xffd700,
-            stroke: { color: 0x000000, width: 5 },
-            dropShadow: { color: 0x000000, blur: 4, distance: 5 },
+            fill: "white",
+            stroke: { color: 0x000000, width: 8 },
+            dropShadow: { color: 0x000000, blur: 8, distance: 8 },
+            align: 'center'
         });
 
-        this.winText = new Text({ text: "0", style });
-        this.winText.anchor.set(1);
-        this.winText.x = window.innerWidth / 2;
-        this.winText.y = window.innerHeight / 2;
+        this.winText = new Text({ text: "0", style: winStyle });
+        this.winText.anchor.set(0.5);
+        this.winText.x = width / 2;
+        this.winText.y = height / 2;
 
         this.overlay.addChild(this.backdrop);
-        this.overlay.addChild(this.particleContainer);
+        this.overlay.addChild(this.coinContainer);
         this.overlay.addChild(this.winText);
 
-        // Add to main stage (adjust based on your actual display list hierarchy)
         this.app.stage.addChild(this.overlay);
 
-        // Bind particle loop
-        this.app.ticker.add(this.updateParticles.bind(this));
+        this.updateFountain = this.updateFountain.bind(this);
     }
 
     async onEvent(event: TimelineEvent): Promise<void> {
-        const totalWin = event.totalWin;
-        this.betAmount = 1 //event.meta?.betAmount || event.betAmount || 1;
+        this.targetWin = event.totalWin || 0;
 
-        if (!totalWin || totalWin <= 0) {
-            return;
+        if (this.targetWin <= 0) {
+            return Promise.resolve();
         }
 
-        this.targetValue = totalWin;
-        this.currentTier = "REGULAR";
-
-        await this.startPresentation();
-    }
-
-    private startPresentation(): Promise<void> {
         return new Promise((resolve) => {
-            this.overlay.visible = true;
-            this.winText.text = "0";
-            this.winText.scale.set(1);
-
-            // Proxy object for GSAP to tween
-            const tallyProxy = { value: 0 };
-
-            this.tallyTween = gsap.to(tallyProxy, {
-                value: this.targetValue,
-                duration: 4,
-                ease: "power3.out",
-                onUpdate: () => {
-                    this.winText.text = Math.floor(tallyProxy.value).toString();
-                    this.checkTierEscalation(tallyProxy.value);
-                },
-                onComplete: () => {
-                    this.finalizePresentation(resolve);
-                }
-            });
+            this.resolveSpin = resolve;
+            this.startPresentation();
         });
     }
 
-    private checkTierEscalation(currentValue: number): void {
-        const multiplier = currentValue / this.betAmount;
-        const newTier = this.getWinTier(multiplier);
+    private startPresentation(): void {
+        this.overlay.visible = true;
+        this.overlay.alpha = 1;
+        this.winText.text = "0";
+        this.winText.scale.set(0.5);
+        this.currentTier = "SMALL";
+        this.isCounting = true;
+
+        this.app.ticker.add(this.updateFountain);
+
+        const tallyProxy = { value: 0 };
+        const duration = this.calculateDuration(this.targetWin);
+
+        gsap.to(this.winText.scale, { x: 1, y: 1, duration: 0.5, ease: "back.out(1.5)" });
+
+        this.countUpTween = gsap.to(tallyProxy, {
+            value: this.targetWin,
+            duration: duration,
+            ease: "power2.out",
+            onUpdate: () => {
+                const currentVal = Math.floor(tallyProxy.value);
+                this.winText.text = currentVal.toString();
+                this.checkTier(currentVal);
+            },
+            onComplete: () => {
+                this.finishCountUp();
+            }
+        });
+    }
+
+    private calculateDuration(winAmount: number): number {
+        if (winAmount >= this.TIER_THRESHOLDS.EPIC) return 5;
+        if (winAmount >= this.TIER_THRESHOLDS.MEGA) return 4;
+        if (winAmount >= this.TIER_THRESHOLDS.BIG) return 2.5;
+        return 1.5;
+    }
+
+    private checkTier(currentValue: number): void {
+        let newTier: WinTier = "SMALL";
+        if (currentValue >= this.TIER_THRESHOLDS.EPIC) newTier = "EPIC";
+        else if (currentValue >= this.TIER_THRESHOLDS.MEGA) newTier = "MEGA";
+        else if (currentValue >= this.TIER_THRESHOLDS.BIG) newTier = "BIG";
 
         if (newTier !== this.currentTier) {
             this.currentTier = newTier;
-            this.triggerEscalationEffects(newTier);
+            this.triggerTierUpgrade();
         }
     }
 
-    private getWinTier(multiplier: number): WinTier {
-        if (multiplier >= 100) return "EPIC";
-        if (multiplier >= 50) return "MEGA";
-        if (multiplier >= 20) return "BIG";
-        return "REGULAR";
-    }
-
-    private triggerEscalationEffects(tier: WinTier): void {
-        const intensities = { REGULAR: 0, BIG: 5, MEGA: 10, EPIC: 15 };
-        const particleCounts = { REGULAR: 0, BIG: 50, MEGA: 100, EPIC: 200 };
-        const scales = { REGULAR: 1, BIG: 1.2, MEGA: 1.5, EPIC: 2 };
-
-        // 1. Screen Shake via GSAP
-        if (intensities[tier] > 0) {
-            gsap.fromTo(this.overlay,
-                { x: -intensities[tier], y: -intensities[tier] },
-                { x: 0, y: 0, duration: 0.1, yoyo: true, repeat: 5, ease: "sine.inOut" }
-            );
-        }
-
-        // 2. Text Pop
+    private triggerTierUpgrade(): void {
         gsap.fromTo(this.winText.scale,
-            { x: scales[tier] * 1.2, y: scales[tier] * 1.2 },
-            { x: scales[tier], y: scales[tier], duration: 0.5, ease: "back.out(1.7)" }
+            { x: 1.3, y: 1.3 },
+            { x: 1, y: 1, duration: 0.4, ease: "back.out(2)" }
         );
 
-        // 3. Particles
-        if (particleCounts[tier] > 0) {
-            this.emitParticles(particleCounts[tier]);
-        }
-
-        // 4. Audio Hook
-        // this.game.audio?.playSound(`tier_upgrade_${tier}`);
+        // Minor visual burst on upgrade
+        this.coinSpawnTimer += 10;
     }
 
-    private emitParticles(count: number): void {
-        const centerX = window.innerWidth / 2;
-        const centerY = window.innerHeight / 2;
+    private handleInteraction(): void {
+        // Kill active tweens immediately
+        if (this.countUpTween) this.countUpTween.kill();
+        if (this.autoCloseTimer) this.autoCloseTimer.kill();
+        gsap.killTweensOf(this.winText.scale);
 
-        for (let i = 0; i < count; i++) {
-            const pGraphic = new Graphics()
-                .circle(0, 0, 5 + Math.random() * 10)
-                .fill({ color: Math.random() > 0.5 ? 0xffd700 : 0xffaa00 });
+        // Snap text to final value
+        this.winText.text = this.targetWin.toString();
+        this.isCounting = false;
 
-            pGraphic.x = centerX;
-            pGraphic.y = centerY;
+        // Skip straight to close
+        this.closePresentation();
+    }
 
-            const angle = Math.random() * Math.PI * 2;
-            const velocity = 5 + Math.random() * 15;
+    private finishCountUp(): void {
+        this.isCounting = false;
+        this.winText.text = this.targetWin.toString();
 
-            this.particleContainer.addChild(pGraphic);
-            this.particles.push({
-                sprite: pGraphic,
-                vx: Math.cos(angle) * velocity,
-                vy: Math.sin(angle) * velocity - 10, // Initial upward burst
-                life: 1.0
-            });
+        gsap.to(this.winText.scale, {
+            x: 1.1, y: 1.1, duration: 0.8, repeat: -1, yoyo: true, ease: "sine.inOut"
+        });
+
+        // Auto-close 1 second after hitting the target
+        this.autoCloseTimer = gsap.delayedCall(1, () => {
+            this.closePresentation();
+        });
+    }
+
+    private closePresentation(): void {
+        this.backdrop.eventMode = 'none';
+
+        gsap.to(this.overlay, {
+            alpha: 0,
+            duration: 0.3,
+            onComplete: () => {
+                this.overlay.visible = false;
+                this.app.ticker.remove(this.updateFountain);
+                this.clearCoins();
+                if (this.resolveSpin) {
+                    this.resolveSpin();
+                    this.resolveSpin = null;
+                }
+            }
+        });
+    }
+
+    // --- Particle System Logic ---
+
+    private updateFountain(ticker: Ticker): void {
+        this.spawnCoins(ticker.deltaTime);
+        this.updateCoins(ticker.deltaTime);
+    }
+
+    private spawnCoins(delta: number): void {
+        let spawnRate = 0;
+        if (this.isCounting) {
+            if (this.currentTier === "SMALL") spawnRate = 3;
+            else if (this.currentTier === "BIG") spawnRate = 10;
+            else if (this.currentTier === "MEGA") spawnRate = 20;
+            else if (this.currentTier === "EPIC") spawnRate = 40;
+        } else {
+            // Rapid fall-off after counting completes
+            spawnRate = 0;
+        }
+
+        this.coinSpawnTimer += spawnRate * delta;
+
+        while (this.coinSpawnTimer >= 1) {
+            this.createCoinParticle();
+            this.coinSpawnTimer -= 1;
         }
     }
 
-    private updateParticles(ticker: Ticker): void {
-        if (this.particles.length === 0) return;
+    private createCoinParticle(): void {
+        const colors = [0xFFD700, 0xFFAA00, 0xFFEE88]; // Gold, Orange-Gold, Light-Gold
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        const radius = 10 + Math.random() * 8;
 
-        const gravity = 0.5; // Downward acceleration per frame
-        const drag = 0.98;
+        const coin = new Graphics()
+            .ellipse(0, 0, radius, radius)
+            .fill({ color: color });
 
-        for (let i = this.particles.length - 1; i >= 0; i--) {
-            const p = this.particles[i];
+        coin.x = this.game.config.width / 2;
+        coin.y = this.game.config.height + 20;
 
-            p.vx *= drag;
-            p.vy += gravity;
+        // Cone projection physics
+        const force = this.getFountainForce();
+        const speed = force.base + Math.random() * force.variance;
+        const spreadLimit = this.getFountainSpread();
+        const angle = -Math.PI / 2 + (Math.random() - 0.5) * spreadLimit; // -90 deg +/- spread
 
-            p.sprite.x += p.vx * ticker.deltaTime;
-            p.sprite.y += p.vy * ticker.deltaTime;
+        this.coinContainer.addChild(coin);
+        this.coins.push({
+            sprite: coin,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            spinSpeed: 0.1 + Math.random() * 0.3,
+            spinAngle: Math.random() * Math.PI * 2
+        });
+    }
 
-            p.life -= 0.01 * ticker.deltaTime;
-            p.sprite.alpha = p.life;
+    private updateCoins(delta: number): void {
+        const gravity = 0.6;
+        const heightLimit = this.game.config.height + 100;
 
-            if (p.life <= 0 || p.sprite.y > window.innerHeight + 50) {
+        for (let i = this.coins.length - 1; i >= 0; i--) {
+            const p = this.coins[i];
+
+            p.vy += gravity * delta;
+            p.sprite.x += p.vx * delta;
+            p.sprite.y += p.vy * delta;
+
+            // Fake 3D spinning
+            p.spinAngle += p.spinSpeed * delta;
+            p.sprite.scale.y = Math.cos(p.spinAngle);
+
+            if (p.sprite.y > heightLimit && p.vy > 0) {
                 p.sprite.destroy();
-                this.particles.splice(i, 1);
+                this.coins.splice(i, 1);
             }
         }
     }
 
-    private skipPresentation(): void {
-        if (!this.tallyTween?.isActive()) return;
-
-        // Force tween to end
-        this.tallyTween.progress(1);
-
-        // Ensure final state and max effects trigger
-        const finalTier = this.getWinTier(this.targetValue / this.betAmount);
-        this.triggerEscalationEffects(finalTier);
-
-        // this.game.audio?.playSound("slam_impact");
+    private getFountainSpread(): number {
+        // Radians: wider spread for higher tiers
+        switch (this.currentTier) {
+            case "SMALL": return 0.5;
+            case "BIG": return 0.8;
+            case "MEGA": return 1.2;
+            case "EPIC": return 1.6;
+            default: return 0.5;
+        }
     }
 
-    private finalizePresentation(resolve: () => void): void {
-        // Hold state, then cleanup
-        gsap.delayedCall(2, () => {
-            gsap.to(this.overlay, {
-                alpha: 0,
-                duration: 0.5,
-                onComplete: () => {
-                    this.overlay.visible = false;
-                    this.overlay.alpha = 1;
+    private getFountainForce(): { base: number, variance: number } {
+        // Higher base velocity for higher tiers
+        switch (this.currentTier) {
+            case "SMALL": return { base: 18, variance: 6 };
+            case "BIG": return { base: 22, variance: 8 };
+            case "MEGA": return { base: 28, variance: 10 };
+            case "EPIC": return { base: 35, variance: 15 };
+            default: return { base: 18, variance: 6 };
+        }
+    }
 
-                    // Clear remaining particles
-                    this.particles.forEach(p => p.sprite.destroy());
-                    this.particles = [];
-
-                    resolve();
-                }
-            });
-        });
+    private clearCoins(): void {
+        this.coins.forEach(c => c.sprite.destroy());
+        this.coins = [];
+        this.coinSpawnTimer = 0;
     }
 }

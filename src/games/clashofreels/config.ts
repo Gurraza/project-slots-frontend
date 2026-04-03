@@ -18,31 +18,12 @@ const config: GameConfig = {
     symbolWidth: 90,
     gapX: 0,
     gapY: 0,
-    background: {
-        asset: {
-            src: "/games/clashofreels/animated_background2_slowmo.mp4",
-            alias: "bg"
-        }
-    },
-    ui: {
-        spinButton: {
-            asset: {
-                src: "/games/clashofreels/exp/_0000_SpinBtnInner.png",
-                alias: "spinbtn",
-                scale: 1
-            },
-            position: {
-                bottom: 60,
-                left: 1280 / 2
-            }
-        }
-    },
     reelSpinMode: "CONTINIOUS",
 
     spinSpeed: 25,
     spinAcceleration: .25,
     spinDeacceleration: .25,
-    spinTime: 1000,
+    spinTime: 200,
     motionBlurStrength: .4,
     staggerTime: {
         start: 100,
@@ -74,6 +55,9 @@ const config: GameConfig = {
         "TRANSFORM_FEATURE",
         "TRIBUTE_HARVEST",
         "TOTAL_WIN",
+        "BONUS_GAME_BEGIN",
+        "BONUS_GAME_END",
+        "SHOW_WIN_FEATURE",
     ],
     symbols: [
         {

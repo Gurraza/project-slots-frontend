@@ -17,7 +17,8 @@ export class SpinFeature extends Feature {
 
     async onEvent(event: TimelineEvent): Promise<void> {
         // 1. Start all reels immediately. 
-        this.game.reels.forEach(reel => reel.spin()); // Adjust to reel.startSpin() if renamed
+        const spinStartTasks = this.game.reels.map(reel => reel.spin());
+        await Promise.all(spinStartTasks)
 
         // 2. Safely check for an anticipation event in the current timeline
         const anticipationEvent = this.game.getTimelineEvent(event.index - 1)

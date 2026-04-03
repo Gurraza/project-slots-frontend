@@ -3,6 +3,7 @@ import { GameWrapper } from '../../engine/GameWrapper.ts';
 import config from './config.ts';
 import { registerAnimations } from './registerAnimations.ts';
 import { SpinButtonFeature } from "../../engine/features/spinbutton.ts"
+import { uiInit } from "./ui.ts"
 
 async function bootstrap() {
     const container = document.querySelector<HTMLDivElement>('#game-container');
@@ -13,7 +14,8 @@ async function bootstrap() {
     await init()
     registerAnimations()
     const engine = new GameWrapper(container, config);
-    await engine.init();
+    const game = await engine.init()
+    uiInit(game.ui)
 }
 
 bootstrap();

@@ -4,8 +4,8 @@ import { type GameConfig } from '../../engine/types.ts';
 const config: GameConfig = {
     gameTitle: "Neon City",
     gameId: "neoncity",
-    cols: 6,
-    rows: 5,
+    cols: 8,
+    rows: 8,
     endpoints: {
         spin: "/api/play",
         init: ""
@@ -13,38 +13,19 @@ const config: GameConfig = {
     width: 1280,
     height: 720,
     position: {
-        left: 1280 / 2,
-        top: 720 / 2 - 20
+        left: 1280 / 2 + 75,
+        top: 720 / 2 - 33
     },
-    symbolHeight: 110,
-    symbolWidth: 110,
-    gapX: 0,
-    gapY: 0,
-    background: {
-        asset: {
-            src: "/games/neoncity/background.png",
-            alias: "bg"
-        }
-    },
-    ui: {
-        spinButton: {
-            asset: {
-                src: "/games/clashofreels/exp/_0000_SpinBtnInner.png",
-                alias: "spinbtn",
-                scale: 1
-            },
-            position: {
-                bottom: 60,
-                left: 1280 / 2
-            }
-        }
-    },
+    symbolHeight: 65,
+    symbolWidth: 65,
+    gapX: 12,
+    gapY: 2,
     reelSpinMode: "DROP_IN_DROP_OUT",
 
-    spinSpeed: 25,
+    spinSpeed: 15,
     spinAcceleration: .25,
     spinDeacceleration: .25,
-    spinTime: 500,
+    spinTime: 300,
     motionBlurStrength: .4,
     staggerTime: {
         start: 100,
@@ -60,11 +41,6 @@ const config: GameConfig = {
     },
     dropSpeed: 1000,
     timeBeforeNextEvent: 200,
-
-    symbolBg: {
-        src: "/games/clashofreels/Background_Cell.png",
-        alias: "cell_bg"
-    },
     pathPrefix: "",
     features: [
         "SPIN_START",
@@ -73,10 +49,11 @@ const config: GameConfig = {
         "TRANSFORM_FEATURE",
         "TRIBUTE_HARVEST",
         // "TOTAL_WIN",
+        "WHEEL",
     ],
     symbols: [
         {
-            id: 0,
+            id: 1,
             asset: {
                 src: "/games/neoncity/cards.png",
                 alias: "cards",
@@ -84,7 +61,7 @@ const config: GameConfig = {
             scale: 1,
         },
         {
-            id: 1,
+            id: 2,
             asset: {
                 src: "/games/neoncity/cash.png",
                 alias: "cash",
@@ -92,7 +69,7 @@ const config: GameConfig = {
             scale: 1,
         },
         {
-            id: 2,
+            id: 3,
             asset: {
                 src: "/games/neoncity/cherry.png",
                 alias: "cherry",
@@ -100,7 +77,7 @@ const config: GameConfig = {
             scale: 1,
         },
         {
-            id: 3,
+            id: 4,
             asset: {
                 src: "/games/neoncity/circles.png",
                 alias: "circles",
@@ -108,7 +85,7 @@ const config: GameConfig = {
             scale: 1,
         },
         {
-            id: 4,
+            id: 5,
             asset: {
                 src: "/games/neoncity/clover.png",
                 alias: "clover",
@@ -116,7 +93,7 @@ const config: GameConfig = {
             scale: 1,
         },
         {
-            id: 5,
+            id: 6,
             asset: {
                 src: "/games/neoncity/crown.png",
                 alias: "crown",
@@ -124,7 +101,7 @@ const config: GameConfig = {
             scale: 1,
         },
         {
-            id: 6,
+            id: 7,
             asset: {
                 src: "/games/neoncity/diamond.png",
                 alias: "diamond",
@@ -132,7 +109,7 @@ const config: GameConfig = {
             scale: 1,
         },
         {
-            id: 7,
+            id: 8,
             asset: {
                 src: "/games/neoncity/grape.png",
                 alias: "grape",
@@ -140,7 +117,7 @@ const config: GameConfig = {
             scale: 1,
         },
         {
-            id: 63,
+            id: 9,
             asset: {
                 src: "/games/neoncity/trophy.png",
                 alias: "trophy",
@@ -148,7 +125,7 @@ const config: GameConfig = {
             scale: 1,
         },
         {
-            id: 60,
+            id: 10,
             asset: {
                 src: "/games/neoncity/horseshoe.png",
                 alias: "horseshoe",

@@ -13,9 +13,10 @@ export class GameController {
     public reels: Reel[] = []
     public app: Application
 
-    private gameState: GameState
-    private ui: UI
+    public gameState: GameState
+    public ui: UI
     private bg: Sprite
+    private currentSeed: string | null = null
     constructor(app: Application, config: GameConfig) {
         this.app = app
         this.config = config;
@@ -43,6 +44,14 @@ export class GameController {
             timeline: null
         }
         this.ui = new UI(this.gameState, this.handleSpinPress)
+
+        // for kexet
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'SET_SEED') {
+                this.currentSeed = event.data.seed.toString();
+                // Låt användarens klick på spin-knappen (handleSpinPress) anropa this.play()
+            }
+        });
     }
 
     public async boot() {
@@ -50,9 +59,8 @@ export class GameController {
         console.log(`Booting Game Engine for: ${this.gameState.config.gameTitle}`)
         this.gameState.features.forEach(f => f.init())
         await this.loadAssets()
-        this.setBackground()
+        // this.setBackground()
         this.buildGrid()
-        this.ui.setup()
 
         // playAnimation(.2, this.stage, "/games/clashofreels/animations/meteor.json", { x: 100, y: 100 })
     }
@@ -64,8 +72,8 @@ export class GameController {
             toLoad.push(s.asset.alias)
         })
         const extraAssets: Asset[] = [
-            this.config.ui.spinButton.asset,
-            this.config.background.asset,
+            // this.config.ui.spinButton.asset,
+            // this.config.background.asset,
         ]
         this.config.symbolBg && extraAssets.push(this.config.symbolBg)
         extraAssets.forEach(a => {
@@ -125,7 +133,8 @@ export class GameController {
 
     async fetchTimeline(): Promise<Timeline | undefined> {
         const currentParams = new URLSearchParams(window.location.search);
-        const seed = currentParams.get('seed');
+        // const seed = currentParams.get('seed');
+        const seed = this.currentSeed || currentParams.get('seed');
         const url = new URL(this.config.endpoints.spin, "http://localhost:8080")
         // const url = new URL(this.config.endpoints.spin, "http://192.168.68.102:8080")
         url.searchParams.append("gameId", this.config.gameId)
@@ -185,7 +194,7 @@ export class GameController {
             const featurePromises: Promise<void>[] = [];
 
             for (const feature of this.gameState.features) {
-                if (feature.eventType === event.type) {
+                if (feature.eventType === event.type || feature.eventType === "*") {
                     // Push the promise without awaiting it immediately
                     featurePromises.push(feature.onEvent(event));
                 }
@@ -201,6 +210,7 @@ export class GameController {
             f.onSpinEnd()
         }
         this.gameState.state = "IDLE"
+        window.parent.postMessage({ type: 'ROUND_COMPLETE' }, '*');
     }
 
     public getTimelineEvent(index: number): TimelineEvent | null {

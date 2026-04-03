@@ -1,7 +1,13 @@
 import type { Application, Container } from "pixi.js"
 import type { Feature } from "./features/feature"
 
-export type GameConfig = Readonly<{
+export type UIElement = {
+    asset: Asset
+    position: Position
+    flag?: "SPIN" | "PLUS" | "MINUS" | "MENU" | "INFO"
+}
+
+export type GameConfig = {
     gameTitle: string
     gameId: string
     endpoints: {
@@ -15,20 +21,13 @@ export type GameConfig = Readonly<{
     symbolHeight: number
     gapX: number
     gapY: number
-    background: {
-        asset: Asset
-    }
-    ui: {
-        spinButton: {
-            position: Position,
-            asset: Asset
-        },
-    }
+    ui?: UIElement[],
     spinTime: number
     reelSpinMode: "CONTINIOUS" | "DROP_IN_DROP_OUT" | "INVISIBLE_FLY_BY"
     motionBlurStrength: number
     spinSpeed: number
     dropSpeed?: number
+    isLandscape?: boolean
     spinAcceleration: number
     spinDeacceleration: number
     staggerTime: {
@@ -52,7 +51,7 @@ export type GameConfig = Readonly<{
     pathPrefix: string
     features: string[]
     symbols: SymbolDef[]
-}>
+}
 
 export type GameState = {
     state: "IDLE" | "ACTIVE"
@@ -106,21 +105,42 @@ export type Position =
     );
 
 
-
 export function getPos(position: Position, config: GameConfig) {
+    let y: number = 0;
+    let x: number = 0;
+
+    if (position) {
+        // Handle Y Axis
+        if ("bottom" in position && position.bottom !== undefined) {
+            y = config.height - position.bottom;
+        } else if ("top" in position && position.top !== undefined) {
+            y = position.top;
+        }
+
+        // Handle X Axis
+        if ("left" in position && position.left !== undefined) {
+            x = position.left;
+        } else if ("right" in position && position.right !== undefined) {
+            x = config.width - position.right;
+        }
+    }
+
+    return { x, y };
+}
+export function ggetPos(position: Position, config: GameConfig) {
     let y: number = 0
     let x: number = 0
     if (position) {
-        if (position.bottom) {
+        if (position.bottom && position.bottom !== 0) {
             y = config.height - position.bottom
         }
-        else if (position.top) {
+        else if (position.top && position.top !== 0) {
             y = position.top
         }
-        if (position.left) {
+        if (position.left && position.left !== 0) {
             x = position.left
         }
-        else if (position.right) {
+        else if (position.right && position.right !== 0) {
             x = config.width - position.right
         }
     }
@@ -131,4 +151,5 @@ export type Asset = {
     src: string
     alias: string
     scale?: number
+    zIndex?: number
 }

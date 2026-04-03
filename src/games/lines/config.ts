@@ -12,40 +12,21 @@ const config: GameConfig = {
     height: 720,
     position: {
         left: 1280 / 2,
-        top: 720 / 2 + 30
+        top: 720 / 2 + 38
     },
     symbolHeight: 100,
     symbolWidth: 90,
     gapX: 30,
     gapY: 15,
-    background: {
-        asset: {
-            src: "/games/lines/background.png",
-            alias: "bg"
-        }
-    },
-    ui: {
-        spinButton: {
-            asset: {
-                src: "/games/clashofreels/spinbtn.png",
-                alias: "spinbtn",
-                scale: .4
-            },
-            position: {
-                bottom: 100,
-                left: 1280 / 2
-            }
-        }
-    },
     reelSpinMode: "CONTINIOUS",
-    motionBlurStrength: 8,
+    motionBlurStrength: .4,
 
     spinSpeed: 25,
     spinAcceleration: .8,
     spinDeacceleration: .2,
     staggerTime: {
-        start: 0,
-        end: 1,
+        start: 100,
+        end: 0,
     },
     windup: {
         pixels: 0,
@@ -59,9 +40,10 @@ const config: GameConfig = {
     timeBeforeNextEvent: 200,
     cols: 5,
     rows: 3,
-
+    spinTime: 1000,
     pathPrefix: "",
     features: [
+        "SPIN_START",
         "TRANSFORM_FEATURE",
         "PAYLINES_FEATURE",
     ],

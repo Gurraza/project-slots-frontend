@@ -13,7 +13,15 @@ export class GameWrapper {
         this.app = new Application();
     }
 
-    public async init() {
+    public async init(): Promise<GameController> {
+        const isLandscape: boolean = window.innerWidth > 600
+        this.config.isLandscape = isLandscape
+        this.config.width = isLandscape ? this.config.width : this.config.height
+        this.config.height = isLandscape ? this.config.height : this.config.width
+        this.config.position = {
+            left: this.config.width / 2,
+            top: this.config.height / 2 - 20
+        }
         await this.app.init({
             width: this.config.width,
             height: this.config.height,
@@ -40,6 +48,7 @@ export class GameWrapper {
             }
         });
         await this.game.boot();
+        return this.game
     }
 
     private resize() {

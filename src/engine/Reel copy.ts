@@ -4,9 +4,6 @@ import { Container, Graphics, BlurFilter } from "pixi.js";
 import * as PIXI from "pixi.js"
 import { PixiPlugin } from "gsap/PixiPlugin"
 import { gsap } from "gsap"
-import { DropInOutSpinStrategy } from "./strategies/DropInOutSpinStrategy";
-import { ContinuousSpinStrategy } from "./strategies/ContinuousSpinStrategy";
-import type { ISpinStrategy } from "./strategies/ISpinStrategy";
 
 gsap.registerPlugin(PixiPlugin)
 PixiPlugin.registerPIXI(PIXI)
@@ -18,20 +15,19 @@ export class Reel {
     public slotHeight: number
     public symbols: ReelSymbol[] = []
 
-    public speed: number = 0
-    public speedMultiplier: number = 1
-    public config: GameConfig
-    public totalHeight: number
-    public viewBottom: number
-    public symbolsInjected: number = 0
-    public stopSymbols: number[] = []
-    public resolveSpin: (() => void) | null = null
-    public index: number
-    public stage: Container
-    public border: Graphics
-    public blurFilter: BlurFilter;
-    public blurMultiplier: number
-    public spinStrategy: ISpinStrategy;
+    private speed: number = 0
+    private speedMultiplier: number = 1
+    private config: GameConfig
+    private totalHeight: number
+    private viewBottom: number
+    private symbolsInjected: number = 0
+    private stopSymbols: number[] = []
+    private resolveSpin: (() => void) | null = null
+    private index: number
+    private stage: Container
+    private border: Graphics
+    private blurFilter: BlurFilter;
+    private blurMultiplier: number
 
     constructor(config: GameConfig, position: Position, index: number, stage: Container, gameContainer: Container) {
         this.config = config
@@ -60,11 +56,6 @@ export class Reel {
         this.blurFilter.resolution = 2
         // PixiJS v8 applies filters as an array
         this.container.filters = [this.blurFilter];
-        if (this.config.reelSpinMode === "DROP_IN_DROP_OUT") {
-            this.spinStrategy = new DropInOutSpinStrategy();
-        } else {
-            this.spinStrategy = new ContinuousSpinStrategy();
-        }
         this.initSymbols()
     }
 
@@ -91,7 +82,50 @@ export class Reel {
     }
 
     update(delta: number): void {
-        this.spinStrategy.update(this, delta);
+        switch (this.state) {
+            case "IDLE":
+                break
+            case "STOPPING":
+            case "SPINNING":
+                this.blurFilter.strengthY = this.speed * this.speedMultiplier * this.blurMultiplier;
+                let readyToLand: boolean = false
+                this.symbols.forEach((symbol) => {
+                    symbol.y += delta * this.speed * this.speedMultiplier
+
+                    if (symbol.y > this.viewBottom) {
+                        symbol.y -= this.totalHeight
+
+                        if (this.state == "SPINNING") {
+                            symbol.changeSymbolState(this.getRandomSymbolId())
+                        }
+                        else if (this.state == "STOPPING") {
+                            // The Orchestrator has commanded a stop. Begin injecting the result.
+                            // Inject symbols in reverse order (bottom-up) as they come in from the top
+                            if (this.symbolsInjected < this.config.rows) {
+                                const targetId = this.stopSymbols[this.stopSymbols.length - 1 - this.symbolsInjected];
+                                symbol.changeSymbolState(targetId !== undefined ? targetId : this.getRandomSymbolId());
+                            } else {
+                                // The top invisible symbol or overflow symbols
+                                symbol.changeSymbolState(this.getRandomSymbolId());
+                            }
+
+                            this.symbolsInjected++;
+
+                            // Once we've injected enough symbols to fill the visible grid, trigger the snap/bounce
+                            if (this.symbolsInjected >= this.config.rows + 1) {
+                                readyToLand = true;
+                            }
+                        }
+                    }
+                })
+                if (readyToLand) {
+                    this.triggerLanding()
+                }
+                break
+            default:
+                break
+        }
+
     }
 
     getRandomSymbolId(): number {
@@ -99,11 +133,46 @@ export class Reel {
     }
 
     async spin(): Promise<void> {
-        return this.spinStrategy.spin(this);
+        this.symbolsInjected = 0
+        this.stopSymbols = []
+
+        // gsap.to(this, {
+        //     speed: this.config.spinSpeed,
+        //     duration: .4,//this.config.spinAcceleration,
+        //     delay: this.config.staggerTime * this.index,
+        //     ease: "back.in(3)",
+        //     onStart: () => { this.state = "SPINNING"; }
+        // })
+        gsap.to(this.symbols, {
+            y: `-=${this.config.windup.pixels}`,
+            duration: this.config.windup.time,
+            delay: this.config.staggerTime.start / 1000 * this.index,
+            ease: this.config.windup.ease,
+            onComplete: () => {
+                this.state = "SPINNING";
+
+                // 2. Acceleration Phase (ramp up speed)
+                gsap.to(this, {
+                    speed: this.config.spinSpeed,
+                    duration: this.config.spinAcceleration,
+                    ease: "power2.in"
+                });
+            }
+        });
+
+        return new Promise((resolve) => {
+            this.resolveSpin = resolve;
+        });
     }
 
     public commandStop(stopSymbols: number[]): Promise<void> {
-        return this.spinStrategy.commandStop(this, stopSymbols);
+        this.stopSymbols = stopSymbols;
+        this.symbolsInjected = 0;
+        this.state = "STOPPING";
+
+        return new Promise((resolve) => {
+            this.resolveSpin = resolve;
+        });
     }
 
     private triggerLanding(): void {
@@ -208,7 +277,7 @@ export class Reel {
         this.snapToGrid();
     }
 
-    public snapToGrid(): void {
+    private snapToGrid(): void {
         this.getSorted().forEach((symbol, i) => {
             symbol.y = (i - 1) * this.slotHeight + ((this.config.symbolHeight) / 2);
         });

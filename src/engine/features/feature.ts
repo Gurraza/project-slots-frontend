@@ -8,7 +8,7 @@ export class Feature {
     constructor(game: GameController, id: string, eventType?: string) {
         this.game = game
         this.id = id
-        this.eventType = eventType || id
+        this.eventType = eventType ? eventType : id
     }
 
     async onEvent(event: TimelineEvent) {
