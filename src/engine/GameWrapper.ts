@@ -14,14 +14,24 @@ export class GameWrapper {
     }
 
     public async init(): Promise<GameController> {
-        const isLandscape: boolean = window.innerWidth > 600
-        this.config.isLandscape = isLandscape
-        this.config.width = isLandscape ? this.config.width : this.config.height
-        this.config.height = isLandscape ? this.config.height : this.config.width
-        this.config.position = {
-            left: this.config.width / 2,
-            top: this.config.height / 2 - 20
-        }
+        const isLandscape: boolean = window.innerWidth > 600;
+        this.config.isLandscape = isLandscape;
+
+        // Cache original values to prevent overwriting during swap
+        const origWidth = this.config.width;
+        const origHeight = this.config.height;
+
+        this.config.width = isLandscape ? origWidth : origHeight;
+        this.config.height = isLandscape ? origHeight : origWidth;
+
+        // this.config.position = {
+        //     left: this.config.width / 2,
+        //     top: this.config.height / 2 - 20
+        // };
+
+        this.config.symbolWidth = isLandscape ? this.config.symbolWidthConf.landscape : this.config.symbolWidthConf.portrait
+        this.config.symbolHeight = isLandscape ? this.config.symbolHeightConf.landscape : this.config.symbolHeightConf.portrait
+
         await this.app.init({
             width: this.config.width,
             height: this.config.height,

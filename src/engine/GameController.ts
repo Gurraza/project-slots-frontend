@@ -5,6 +5,7 @@ import { Reel } from './Reel.ts';
 import { UI } from './UI.ts';
 import { FeatureRegistry } from './FeatureRegistry.ts';
 import type { ReelSymbol } from './ReelSymbol.ts';
+import gsap from "gsap"
 
 export class GameController {
     public config: GameConfig
@@ -12,7 +13,6 @@ export class GameController {
     public stage: Container
     public reels: Reel[] = []
     public app: Application
-
     public gameState: GameState
     public ui: UI
     private bg: Sprite
@@ -41,20 +41,47 @@ export class GameController {
                 // FeatureClass is the constructor, 'this' is the GameController instance
                 return new FeatureClass(this);
             }),
-            timeline: null
+            timeline: null,
+            betAmount: 60,
+            win: 0,
         }
         this.ui = new UI(this.gameState, this.handleSpinPress)
 
         // for kexet
+        // window.addEventListener('message', (event) => {
+        //     if (event.data && event.data.type === 'SET_SEED') {
+        //         this.currentSeed = event.data.seed.toString();
+        //         // Låt användarens klick på spin-knappen (handleSpinPress) anropa this.play()
+        //     }
+        // });
+        // for kexet
         window.addEventListener('message', (event) => {
             if (event.data && event.data.type === 'SET_SEED') {
                 this.currentSeed = event.data.seed.toString();
-                // Låt användarens klick på spin-knappen (handleSpinPress) anropa this.play()
+                console.log("Spelmotor mottog nytt seed:", this.currentSeed); // Bekräftelse
             }
+        });
+
+        window.addEventListener("keydown", (e) => {
+            let speed = 1
+            if (e.key === "1") speed = 0.00001;
+            if (e.key === "2") speed = 0.25;
+            if (e.key === "3") speed = 0.5;
+            if (e.key === "4") speed = 1;
+            if (e.key === "5") speed = 2;
+            if (e.key === "6") speed = 4;
+            if (e.key === "7") speed = 8;
+            if (e.key === "8") speed = 16;
+            if (e.key === "9") speed = 32;
+
+            gsap.globalTimeline.timeScale(speed);
+            app.ticker.speed = speed;
+
+            console.log("Speed:", speed);
         });
     }
 
-    public async boot() {
+    public async bboot() {
         // Now reads dynamically from injected config
         console.log(`Booting Game Engine for: ${this.gameState.config.gameTitle}`)
         this.gameState.features.forEach(f => f.init())
@@ -63,6 +90,17 @@ export class GameController {
         this.buildGrid()
 
         // playAnimation(.2, this.stage, "/games/clashofreels/animations/meteor.json", { x: 100, y: 100 })
+    }
+    public async boot() {
+        console.log(`Booting Game Engine for: ${this.gameState.config.gameTitle}`)
+        this.gameState.features.forEach(f => f.init())
+        await this.loadAssets()
+        // this.setBackground()
+        this.buildGrid()
+
+        // --- LÄGG TILL DETTA ---
+        // Signalera till wrappern att spelet är redo att ta emot första seedet
+        window.parent.postMessage({ type: 'GAME_READY' }, '*');
     }
 
     private async loadAssets() {
@@ -121,11 +159,11 @@ export class GameController {
 
     private buildGrid() {
         const pos = getPos(this.config.position, this.config)
-        this.gameContainer.position.set(pos.x - ((this.config.symbolWidth * this.config.cols + this.config.gapX * (this.config.cols - 1)) / 2), pos.y - (this.config.symbolHeight + this.config.gapY) * this.config.rows / 2)
+        this.gameContainer.position.set(pos.x - ((this.config.symbolWidth! * this.config.cols + this.config.gapX * (this.config.cols - 1)) / 2), pos.y - (this.config.symbolHeight! + this.config.gapY) * this.config.rows / 2)
         this.gameState.stage.addChild(this.gameContainer);
 
         for (let i = 0; i < this.config.cols; i++) {
-            const reel: Reel = new Reel(this.config, { left: i * (this.config.symbolWidth + this.config.gapX), top: 0, }, i, this.stage, this.gameContainer)
+            const reel: Reel = new Reel(this.config, { left: i * (this.config.symbolWidth! + this.config.gapX), top: 0, }, i, this.stage, this.gameContainer)
             this.reels.push(reel)
             this.gameContainer.addChild(reel.container)
         }
@@ -156,7 +194,21 @@ export class GameController {
             }
 
             const rawData = await response.json();
-            return rawData.map((data: any, i: number) => ({ ...data, index: i }))
+            return rawData.map((data: any, i: number) => {
+                const eventData = { ...data, index: i };
+
+                // Multiply the win variables by the bet amount.
+                // Note: Adjust the property names (win, winAmount, TotalWinAmount) 
+                // if your backend JSON uses different keys.
+                if (typeof eventData.win === 'number') {
+                    eventData.win *= this.gameState.betAmount;
+                }
+                if (typeof eventData.totalWin === 'number') {
+                    eventData.totalWin *= this.gameState.betAmount;
+                }
+
+                return eventData;
+            });
 
         } catch (error) {
             console.error('Failed to fetch timeline data:', error);
@@ -182,6 +234,7 @@ export class GameController {
         this.gameState.timeline = timeline
         if (this.gameState.state == "ACTIVE") return
         this.gameState.state = "ACTIVE"
+        this.gameState.win = 0
         console.log("Symbols", this.config.symbols.map(s => ({ id: s.id, name: s.asset.alias })))
         console.log("Timeline", timeline)
 

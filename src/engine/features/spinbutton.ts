@@ -14,8 +14,26 @@ export class SpinButtonFeature extends Feature {
     init(): void {
         super.init()
 
-        this.game.place("/games/clashofreels/exp/_0001_SpinBtnOuter.png", { bottom: 60, left: this.game.config.width / 2 + 0 }).then((sprite: Container) => {
-            sprite.zIndex = 5
+
+        this.game.ui.PlaceAsset({
+            asset: {
+                alias: "spinbtnouter",
+                src: "/games/clashofreels/exp/_0001_SpinBtnOuter.png",
+            },
+            position: {
+                landscape: {
+                    bottom: 60,
+                    left: this.game.config.width / 2
+                },
+                portrait: {
+                    bottom: 330,
+                    left: this.game.config.width / 2
+                }
+            },
+            anchor: .5,
+            zIndex: 6,
+            action: this.game.ui.handleSpinPress
+        }).then(sprite => {
             this.sprite = sprite
         })
     }

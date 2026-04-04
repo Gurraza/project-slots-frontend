@@ -35,11 +35,9 @@ export class UI {
         const texture: Texture = await Assets.load(asset)
         const sprite = new Sprite(texture)
         if (action) {
-            sprite.onclick = (event) => {
-                action(event)
-            }
             sprite.eventMode = "static"
             sprite.cursor = "pointer"
+            sprite.on("pointerdown", (event) => action(event))
         }
         if (asset.src.includes(".mp4")) {
             const videoSource = texture.source.resource as HTMLVideoElement

@@ -84,7 +84,7 @@ export class BonusGameEndFeature extends Feature {
 
     async onEvent(event: TimelineEvent): Promise<void> {
         const totalWin = event.totalWin || 0;
-        this.winText.text = totalWin > 0 ? `${totalWin} COINS` : "NO WIN";
+        this.winText.text = totalWin > 0 ? `${totalWin} KR` : "NO WIN";
 
         return new Promise((resolve) => {
             this.resolveSpin = resolve;

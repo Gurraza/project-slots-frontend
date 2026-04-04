@@ -2,7 +2,8 @@ import { Text } from "pixi.js";
 import type { GameController } from "../GameController";
 import { Feature } from "./feature";
 import gsap from "gsap";
-import { type Point, type TimelineEvent } from "../types";
+import { getPos, type Point, type TimelineEvent } from "../types";
+import config from "../../games/lines/config";
 
 export class FlyingNumberOnRemove extends Feature {
     constructor(game: GameController) {
@@ -14,7 +15,7 @@ export class FlyingNumberOnRemove extends Feature {
         await new Promise(r => setTimeout(r, 400));
 
         const targetX = this.game.config.width / 2;
-        const targetY = this.game.config.height / 2 - this.game.config.symbolHeight / 2;
+        const targetY = this.game.config.height / 2 - this.game.config.symbolHeight! / 2;
 
         const centralText = new Text({
             text: "0.00kr",
@@ -34,7 +35,7 @@ export class FlyingNumberOnRemove extends Feature {
         centralText.scale.set(1);
         this.game.stage.addChild(centralText);
 
-        let currentTotal = 0;
+        let currentTotal = this.game.gameState.win || 0;
         const valuePerParticle = event.win / explosions.length;
 
         const flightPromises = explosions.map((explosion: Point) => {
@@ -64,8 +65,8 @@ export class FlyingNumberOnRemove extends Feature {
             .to(centralText, { y: "-=100", alpha: 0, duration: 0.3, ease: "power2.in" }, "+=0.2");
 
         await finalTl;
+        this.game.gameState.win = event.totalWin;
     }
-
     placeWin(point: Point, multiplier: number, centralText: Text, onImpact: () => void): Promise<void> {
         return new Promise((resolve) => {
             const text = new Text({
@@ -79,13 +80,13 @@ export class FlyingNumberOnRemove extends Feature {
                     dropShadow: { color: 0x000000, blur: 4, distance: 2 }
                 }
             });
+            this.game.gameState.win = multiplier
 
             const symbol = this.game.getSymbol(point.x, point.y);
             const pos = this.game.stage.toLocal(symbol.getGlobalPosition());
 
             const x = pos.x;
-            const y = (point.y + 2) * (this.game.config.symbolHeight + this.game.config.gapY);
-
+            const y = pos.y//(point.y + 2) * (this.game.config.symbolHeight! + this.game.config.gapY)
             text.position.set(x, y);
             text.anchor.set(0.5);
             text.scale.set(.7);

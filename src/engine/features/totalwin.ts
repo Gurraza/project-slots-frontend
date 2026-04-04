@@ -31,11 +31,12 @@ export class TotalWinFeature extends Feature {
     private coins: CoinParticle[] = [];
     private coinSpawnTimer: number = 0;
 
+    private readonly betAmount = 60
     private readonly TIER_THRESHOLDS = {
-        SMALL: 0,
-        BIG: 20,
-        MEGA: 50,
-        EPIC: 100
+        SMALL: 0 * this.betAmount,
+        BIG: 2 * this.betAmount,
+        MEGA: 3 * this.betAmount,
+        EPIC: 5 * this.betAmount,
     };
 
     private get app() {
@@ -120,7 +121,8 @@ export class TotalWinFeature extends Feature {
             ease: "power2.out",
             onUpdate: () => {
                 const currentVal = Math.floor(tallyProxy.value);
-                this.winText.text = currentVal.toString();
+                this.winText.text = currentVal.toFixed(2);
+
                 this.checkTier(currentVal);
             },
             onComplete: () => {
@@ -165,7 +167,7 @@ export class TotalWinFeature extends Feature {
         gsap.killTweensOf(this.winText.scale);
 
         // Snap text to final value
-        this.winText.text = this.targetWin.toString();
+        this.winText.text = this.targetWin.toFixed(2);
         this.isCounting = false;
 
         // Skip straight to close
@@ -174,7 +176,7 @@ export class TotalWinFeature extends Feature {
 
     private finishCountUp(): void {
         this.isCounting = false;
-        this.winText.text = this.targetWin.toString();
+        this.winText.text = this.targetWin.toFixed(2);
 
         gsap.to(this.winText.scale, {
             x: 1.1, y: 1.1, duration: 0.8, repeat: -1, yoyo: true, ease: "sine.inOut"

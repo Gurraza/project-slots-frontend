@@ -11,11 +11,17 @@ const config: GameConfig = {
     width: 1280,
     height: 720,
     position: {
-        left: 1280 / 2,
-        top: 720 / 2 - 20
+        landscape: {
+            left: 1280 / 2,
+            top: 720 / 2 - 20
+        },
+        portrait: {
+            left: 720 / 2,
+            top: 1280 / 2 - 17
+        }
     },
-    symbolHeight: 70,
-    symbolWidth: 90,
+    symbolHeightConf: { landscape: 70, portrait: 73 },
+    symbolWidthConf: { landscape: 90, portrait: 80 },
     gapX: 0,
     gapY: 0,
     reelSpinMode: "CONTINIOUS",
