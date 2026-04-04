@@ -8,6 +8,7 @@ import type { ReelSymbol } from './ReelSymbol.ts';
 import gsap from "gsap"
 
 export class GameController {
+    private precomputedData: Record<string, any> | null = null;
     public config: GameConfig
     public gameContainer: Container
     public stage: Container
@@ -91,7 +92,7 @@ export class GameController {
 
         // playAnimation(.2, this.stage, "/games/clashofreels/animations/meteor.json", { x: 100, y: 100 })
     }
-    public async boot() {
+    public async bbboot() {
         console.log(`Booting Game Engine for: ${this.gameState.config.gameTitle}`)
         this.gameState.features.forEach(f => f.init())
         await this.loadAssets()
@@ -100,6 +101,20 @@ export class GameController {
 
         // --- LÄGG TILL DETTA ---
         // Signalera till wrappern att spelet är redo att ta emot första seedet
+        window.parent.postMessage({ type: 'GAME_READY' }, '*');
+    }
+
+    public async boot() {
+        console.log(`Booting Game Engine for: ${this.gameState.config.gameTitle}`)
+        this.gameState.features.forEach(f => f.init())
+
+        // Load the static JSON file into memory
+        const response = await fetch('/games/clashofreels/precomputed_spins.json');
+        this.precomputedData = await response.json();
+
+        await this.loadAssets()
+        this.buildGrid()
+
         window.parent.postMessage({ type: 'GAME_READY' }, '*');
     }
 
@@ -169,7 +184,7 @@ export class GameController {
         }
     }
 
-    async fetchTimeline(): Promise<Timeline | undefined> {
+    async fffetchTimeline(): Promise<Timeline | undefined> {
         const currentParams = new URLSearchParams(window.location.search);
         // const seed = currentParams.get('seed');
         const seed = this.currentSeed || currentParams.get('seed');
@@ -213,6 +228,36 @@ export class GameController {
         } catch (error) {
             console.error('Failed to fetch timeline data:', error);
         }
+    }
+
+    async fetchTimeline(): Promise<Timeline | undefined> {
+        const currentParams = new URLSearchParams(window.location.search);
+        const seed = this.currentSeed || currentParams.get('seed');
+
+        if (!seed) {
+            throw new Error("No seed provided for spin.");
+        }
+
+        if (!this.precomputedData || !this.precomputedData[seed]) {
+            throw new Error(`Timeline for seed ${seed} not found in precomputed data.`);
+        }
+
+        // Deep copy the cached timeline to prevent modifying the source data
+        const rawData = JSON.parse(JSON.stringify(this.precomputedData[seed]));
+
+        return rawData.map((data: any, i: number) => {
+            const eventData = { ...data, index: i };
+
+            // Apply bet amount multipliers
+            if (typeof eventData.win === 'number') {
+                eventData.win *= this.gameState.betAmount;
+            }
+            if (typeof eventData.totalWin === 'number') {
+                eventData.totalWin *= this.gameState.betAmount;
+            }
+
+            return eventData;
+        });
     }
 
     private getInitialGrid(): Grid {
