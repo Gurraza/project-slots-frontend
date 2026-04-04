@@ -21,6 +21,6 @@ async function bootstrap() {
 bootstrap();
 
 async function init() {
-    FeatureRegistry.register("SPIN_BUTTON_FEATURE", SpinButtonFeature)
-    FeatureRegistry.register("BONUS_GAME", SpinButtonFeature)
+    // FeatureRegistry.register("SPIN_BUTTON_FEATURE", SpinButtonFeature)
+    // FeatureRegistry.register("BONUS_GAME", SpinButtonFeature)
 }
