@@ -24,7 +24,7 @@ export class ReelSymbol extends Container {
         this.symbolSprite.anchor.set(0.5)
         this.addChild(this.symbolSprite)
 
-        this.x = this.config.symbolWidth / 2
+        this.x = this.config.symbolWidth! / 2
 
         this.changeSymbolState(symbolId)
     }
@@ -49,8 +49,8 @@ export class ReelSymbol extends Container {
 
         // Handle scaling on the container or individual sprites as needed
         this.scale.set(1);
-        const ratioX = this.config.symbolWidth / this.symbolSprite.texture.width;
-        const ratioY = this.config.symbolHeight / this.symbolSprite.texture.height;
+        const ratioX = this.config.symbolWidth! / this.symbolSprite.texture.width;
+        const ratioY = this.config.symbolHeight! / this.symbolSprite.texture.height;
         const baseScale = Math.min(ratioX, ratioY);
         const finalScale = baseScale * s.scale;
         this.symbolScale = finalScale
@@ -58,8 +58,7 @@ export class ReelSymbol extends Container {
         this.symbolSprite.scale.set(finalScale);
 
         // Example: Make background fill the slot area
-        this.bgSprite.width = this.config.symbolWidth;
-        this.bgSprite.height = this.config.symbolHeight;
+        this.bgSprite.setSize(this.config.symbolWidth!, this.config.symbolHeight!)
     }
 
     public getDefinition(): SymbolDef {

@@ -111,7 +111,7 @@ export class ContinuousSpinStrategy implements ISpinStrategy {
         const sortedSymbols = reel.getSorted();
 
         sortedSymbols.forEach((symbol, index) => {
-            const destY = ((index - 1) * reel.slotHeight) + (reel.config.symbolHeight / 2);
+            const destY = ((index - 1) * reel.slotHeight) + (reel.config.symbolHeight! / 2);
 
             const tl = gsap.timeline({
                 onComplete: () => {

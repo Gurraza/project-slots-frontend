@@ -39,7 +39,7 @@ export class Reel {
         // this.container.sortableChildren = true;
         const containerPos = getPos(position, config)
         this.container.position.set(containerPos.x, containerPos.y)
-        this.slotHeight = this.config.symbolHeight + this.config.gapY
+        this.slotHeight = this.config.symbolHeight! + this.config.gapY
         this.totalHeight = this.slotHeight * (this.config.rows + 2)
         this.viewBottom = (this.config.rows + 1) * this.slotHeight + this.slotHeight / 2
         this.index = index
@@ -48,7 +48,7 @@ export class Reel {
         this.border = new Graphics()
         this.border
             .setStrokeStyle({ width: 4, color: 0xFFD700, alignment: 0 }) // Golden color
-            .rect(containerPos.x, containerPos.y, this.config.symbolWidth, (this.config.symbolHeight + this.config.gapY) * this.config.rows)
+            .rect(containerPos.x, containerPos.y, this.config.symbolWidth!, (this.config.symbolHeight! + this.config.gapY) * this.config.rows)
             .stroke();
 
         this.border.alpha = 0;
@@ -73,14 +73,14 @@ export class Reel {
         for (let i = 0; i < this.config.rows + 2; i++) {
             const symbol = new ReelSymbol(this.getRandomSymbolId(), this.config, this.stage)
 
-            symbol.y = (i - 1) * this.slotHeight + (this.config.symbolHeight / 2);
+            symbol.y = (i - 1) * this.slotHeight + (this.config.symbolHeight! / 2);
 
             this.symbols.push(symbol);
             this.container.addChild(symbol);
         }
 
         const mask = new Graphics()
-            .rect(0, 0, this.config.symbolWidth, (this.config.symbolHeight + this.config.gapY) * this.config.rows)
+            .rect(0, 0, this.config.symbolWidth!, (this.config.symbolHeight! + this.config.gapY) * this.config.rows)
             .fill("white")
 
         mask.x = 0;
@@ -112,7 +112,7 @@ export class Reel {
         const sortedSymbols = this.getSorted();
 
         sortedSymbols.forEach((symbol, index) => {
-            const destY = ((index - 1) * this.slotHeight) + (this.config.symbolHeight / 2);
+            const destY = ((index - 1) * this.slotHeight) + (this.config.symbolHeight! / 2);
 
             const tl = gsap.timeline({
                 onComplete: () => {
@@ -171,7 +171,7 @@ export class Reel {
             promises.push(s.play("remove"))
             s.changeSymbolState(replaceIds[i]);
             // Move above the top visible slot
-            s.y = -this.slotHeight * (exploded.length - i) + (this.config.symbolHeight / 2);
+            s.y = -this.slotHeight * (exploded.length - i) + (this.config.symbolHeight! / 2);
         });
 
         await Promise.all(promises)
@@ -182,7 +182,7 @@ export class Reel {
 
         // 6. Tween all symbols to their new calculated resting Y positions
         const dropPromises = newGridLayout.map((symbol, rowIndex) => {
-            const destY = ((rowIndex) * this.slotHeight) + this.config.symbolHeight / 2
+            const destY = ((rowIndex) * this.slotHeight) + this.config.symbolHeight! / 2
             const distance = Math.abs(destY - symbol.y);
 
             // Skip animation for symbols that are already in their correct position
@@ -210,7 +210,7 @@ export class Reel {
 
     public snapToGrid(): void {
         this.getSorted().forEach((symbol, i) => {
-            symbol.y = (i - 1) * this.slotHeight + ((this.config.symbolHeight) / 2);
+            symbol.y = (i - 1) * this.slotHeight + ((this.config.symbolHeight!) / 2);
         });
     }
 

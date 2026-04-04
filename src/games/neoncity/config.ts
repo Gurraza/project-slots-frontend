@@ -1,4 +1,4 @@
-// src/games/clash_of_reels/config.ts
+// src/games/neoncity/config.ts
 import { type GameConfig } from '../../engine/types.ts';
 
 const config: GameConfig = {
@@ -13,11 +13,17 @@ const config: GameConfig = {
     width: 1280,
     height: 720,
     position: {
-        left: 1280 / 2 + 75,
-        top: 720 / 2 - 33
+        landscape: {
+            left: 1280 / 2 + 75,
+            top: 720 / 2 - 33
+        },
+        portrait: {
+            left: 720 / 2 + 75,
+            top: 1280 / 2 - 33
+        }
     },
-    symbolHeight: 65,
-    symbolWidth: 65,
+    symbolHeightConf: { landscape: 65, portrait: 65 },
+    symbolWidthConf: { landscape: 65, portrait: 65 },
     gapX: 12,
     gapY: 2,
     reelSpinMode: "DROP_IN_DROP_OUT",

@@ -41,10 +41,10 @@ export class DropInOutSpinStrategy implements ISpinStrategy {
         const bottomBuffer = allSymbols[allSymbols.length - 1];
 
         topBuffer.changeSymbolState(reel.getRandomSymbolId());
-        topBuffer.y = -reel.slotHeight + (reel.config.symbolHeight / 2);
+        topBuffer.y = -reel.slotHeight + (reel.config.symbolHeight! / 2);
 
         bottomBuffer.changeSymbolState(reel.getRandomSymbolId());
-        bottomBuffer.y = (reel.config.rows) * reel.slotHeight + (reel.config.symbolHeight / 2);
+        bottomBuffer.y = (reel.config.rows) * reel.slotHeight + (reel.config.symbolHeight! / 2);
 
         // 2. Handle Visible Symbols
         const visibleSymbols = allSymbols.slice(1, reel.config.rows + 1);
@@ -58,7 +58,7 @@ export class DropInOutSpinStrategy implements ISpinStrategy {
         // Drop in staggered from top to bottom
         const dropInPromises = visibleSymbols.map((symbol, index) => {
             // Calculate final resting position based on grid row
-            const destY = (index * reel.slotHeight) + (reel.config.symbolHeight / 2);
+            const destY = (index * reel.slotHeight) + (reel.config.symbolHeight! / 2);
             const tl = gsap.timeline()
             tl.to(symbol, {
                 y: destY,

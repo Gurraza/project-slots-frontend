@@ -2,8 +2,7 @@ import { Text } from "pixi.js";
 import type { GameController } from "../GameController";
 import { Feature } from "./feature";
 import gsap from "gsap";
-import { getPos, type Point, type TimelineEvent } from "../types";
-import config from "../../games/lines/config";
+import { type Point, type TimelineEvent } from "../types";
 
 export class FlyingNumberOnRemove extends Feature {
     constructor(game: GameController) {

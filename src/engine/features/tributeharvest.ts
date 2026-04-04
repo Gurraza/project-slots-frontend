@@ -18,13 +18,13 @@ export class TributeHarvestFeature extends Feature {
         const meta: TributeHarvestMeta = event.meta;
         const config = this.game.config; // Assuming config is accessible here
 
-        const sourceX = meta.source.x * config.symbolWidth + config.symbolWidth / 2;
-        const sourceY = meta.source.y * config.symbolHeight + config.symbolHeight / 2;
+        const sourceX = meta.source.x * config.symbolWidth! + config.symbolWidth! / 2;
+        const sourceY = meta.source.y * config.symbolHeight! + config.symbolHeight! / 2;
 
         await this.game.getSymbol(meta.source.x, meta.source.y).play("land")
         const promises = meta.resourcesToSuck.map(r => {
-            const startX = r.x * config.symbolWidth + config.symbolWidth / 2;
-            const startY = r.y * config.symbolHeight + config.symbolHeight / 2;
+            const startX = r.x * config.symbolWidth! + config.symbolWidth! / 2;
+            const startY = r.y * config.symbolHeight! + config.symbolHeight! / 2;
 
             return this.createBeam(sourceX, sourceY, startX, startY);
         });

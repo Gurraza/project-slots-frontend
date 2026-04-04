@@ -65,8 +65,8 @@ export class PaylinesFeature extends Feature {
 
         // 1. Convert logical path to screen coordinates
         const points = linePath.map((rowIdx, colIdx) => ({
-            x: colIdx * (symbolWidth + gapX) + symbolWidth / 2,
-            y: rowIdx * (symbolHeight + gapY) + symbolHeight / 2
+            x: colIdx * (symbolWidth! + gapX) + symbolWidth! / 2,
+            y: rowIdx * (symbolHeight! + gapY) + symbolHeight! / 2
         }));
 
         const state = { progress: 0 };

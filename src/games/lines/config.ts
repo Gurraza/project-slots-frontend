@@ -1,4 +1,4 @@
-// src/games/clash_of_reels/config.ts
+// src/games/lines/config.ts
 import { type GameConfig } from '../../engine/types.ts';
 
 const config: GameConfig = {
@@ -11,11 +11,17 @@ const config: GameConfig = {
     width: 1280,
     height: 720,
     position: {
-        left: 1280 / 2,
-        top: 720 / 2 + 38
+        landscape: {
+            left: 1280 / 2,
+            top: 720 / 2 + 38
+        },
+        portrait: {
+            left: 720 / 2,
+            top: 1280 / 2 + 38
+        }
     },
-    symbolHeight: 100,
-    symbolWidth: 90,
+    symbolHeightConf: { landscape: 100, portrait: 100 },
+    symbolWidthConf: { landscape: 90, portrait: 90 },
     gapX: 30,
     gapY: 15,
     reelSpinMode: "CONTINIOUS",
