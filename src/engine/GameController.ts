@@ -6,6 +6,8 @@ import { UI } from './UI.ts';
 import { FeatureRegistry } from './FeatureRegistry.ts';
 import type { ReelSymbol } from './ReelSymbol.ts';
 import gsap from "gsap"
+import precomputed_seeds from './precomputed_spins.json';
+
 
 export class GameController {
     private precomputedData: Record<string, any> | null = null;
@@ -109,8 +111,7 @@ export class GameController {
         this.gameState.features.forEach(f => f.init())
 
         // Load the static JSON file into memory
-        const response = await fetch('/games/clashofreels/precomputed_spins.json');
-        this.precomputedData = await response.json();
+        this.precomputedData = precomputed_seeds
 
         await this.loadAssets()
         this.buildGrid()
