@@ -20,6 +20,7 @@ export class GameController {
     public ui: UI
     private bg: Sprite
     private currentSeed: string | null = null
+    private survey_group: string = ""
     constructor(app: Application, config: GameConfig) {
         this.app = app
         this.config = config;
@@ -61,6 +62,7 @@ export class GameController {
         window.addEventListener('message', (event) => {
             if (event.data && event.data.type === 'SET_SEED') {
                 this.currentSeed = event.data.seed.toString();
+                this.survey_group = event.data.seed.toString();
                 console.log("Spelmotor mottog nytt seed:", this.currentSeed); // Bekräftelse
             }
         });
@@ -285,6 +287,7 @@ export class GameController {
         console.log("Timeline", timeline)
 
         for (const f of this.gameState.features) {
+            if (f.id === "TOTAL_WIN" && this.survey_group === "B") continue
             f.onSpinStart()
         }
 
@@ -293,6 +296,7 @@ export class GameController {
             const featurePromises: Promise<void>[] = [];
 
             for (const feature of this.gameState.features) {
+                if (feature.id === "TOTAL_WIN" && this.survey_group === "B") continue
                 if (feature.eventType === event.type || feature.eventType === "*") {
                     // Push the promise without awaiting it immediately
                     featurePromises.push(feature.onEvent(event));
@@ -306,6 +310,7 @@ export class GameController {
         }
 
         for (const f of this.gameState.features) {
+            if (f.id === "TOTAL_WIN" && this.survey_group === "B") continue
             f.onSpinEnd()
         }
         this.gameState.state = "IDLE"
