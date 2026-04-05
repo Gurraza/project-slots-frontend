@@ -62,7 +62,7 @@ export class GameController {
         window.addEventListener('message', (event) => {
             if (event.data && event.data.type === 'SET_SEED') {
                 this.currentSeed = event.data.seed.toString();
-                this.survey_group = event.data.seed.toString();
+                this.survey_group = event.data.group.toString();
                 console.log("Spelmotor mottog nytt seed:", this.currentSeed); // Bekräftelse
             }
         });
