@@ -19,8 +19,8 @@ export function uiInit(UI: UI) {
     else {
         UI.PlaceAsset({
             asset: {
-                src: "/games/clashofreels/background_portrait.png",
-                // src: "/games/clashofreels/animated_portriat_background.mp4",
+                // src: "/games/clashofreels/background_portrait.png",
+                src: "/games/clashofreels/animated_portrait_background.mp4",
                 alias: "bg"
             },
             position: { left: 0, top: 0 },
