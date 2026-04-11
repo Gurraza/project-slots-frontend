@@ -120,7 +120,7 @@ export class GameController {
 
 
         await this.loadAssets()
-        this.sfx.play(SFX.BackgroundTrack, { loop: true })
+        this.sfx.play(SFX.BackgroundTrack, { loop: true, volume: .5 })
         this.buildGrid()
 
         window.parent.postMessage({ type: 'GAME_READY' }, '*');
