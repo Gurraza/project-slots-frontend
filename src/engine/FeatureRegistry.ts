@@ -11,6 +11,7 @@ import { BonusGameBeginFeature } from "./features/bonusGameBegin";
 import { BonusGameEndFeature } from "./features/bonusGameEnd";
 import { ShowWinFeature } from "./features/showWin";
 import { SpinButtonFeature } from "./features/spinbutton";
+import { FlameOutlineFeature } from "./features/flameOutline";
 
 type FeatureConstructor = new (...args: any[]) => Feature;
 export class FeatureRegistry {
@@ -28,6 +29,7 @@ export class FeatureRegistry {
         "BONUS_GAME_END": BonusGameEndFeature,
         "SHOW_WIN_FEATURE": ShowWinFeature,
         "SPIN_BUTTON_FEATURE": SpinButtonFeature,
+        "FLAME_OUTLINE_FEATURE": FlameOutlineFeature,
 
     };
 

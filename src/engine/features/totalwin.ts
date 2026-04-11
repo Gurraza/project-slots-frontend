@@ -3,6 +3,7 @@ import gsap from "gsap";
 import type { GameController } from "../GameController";
 import { Feature } from "./feature";
 import { type TimelineEvent } from "../types";
+import { SFX } from "../SoundManager";
 
 type WinTier = "SMALL" | "BIG" | "MEGA" | "EPIC";
 
@@ -108,6 +109,11 @@ export class TotalWinFeature extends Feature {
         this.currentTier = "SMALL";
         this.isCounting = true;
 
+        // Failsafe stop, then start loop
+        this.game.sfx.stop(SFX.CoinFountain);
+        this.game.sfx.play(SFX.CoinFountain, { loop: true });
+        this.game.sfx.play(SFX.BonusMode);
+
         this.app.ticker.add(this.updateFountain);
 
         const tallyProxy = { value: 0 };
@@ -158,9 +164,15 @@ export class TotalWinFeature extends Feature {
 
         // Minor visual burst on upgrade
         this.coinSpawnTimer += 10;
+
+        // Optional: If you add an SFX.TierUpgrade sound later, trigger it here.
+        // this.game.sfx.play(SFX.TierUpgrade);
     }
 
     private handleInteraction(): void {
+        // Stop audio immediately on skip
+        this.game.sfx.stop(SFX.CoinFountain);
+
         // Kill active tweens immediately
         if (this.countUpTween) this.countUpTween.kill();
         if (this.autoCloseTimer) this.autoCloseTimer.kill();
@@ -176,6 +188,10 @@ export class TotalWinFeature extends Feature {
 
     private finishCountUp(): void {
         this.isCounting = false;
+
+        // Stop audio on natural completion
+        this.game.sfx.stop(SFX.CoinFountain);
+
         this.winText.text = this.targetWin.toFixed(2);
 
         gsap.to(this.winText.scale, {
@@ -190,6 +206,9 @@ export class TotalWinFeature extends Feature {
 
     private closePresentation(): void {
         this.backdrop.eventMode = 'none';
+
+        // Failsafe audio stop
+        this.game.sfx.stop(SFX.CoinFountain);
 
         gsap.to(this.overlay, {
             alpha: 0,

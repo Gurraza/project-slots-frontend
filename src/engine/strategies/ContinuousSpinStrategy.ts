@@ -2,6 +2,7 @@
 import { type ISpinStrategy } from "./ISpinStrategy";
 import type { Reel } from "../Reel";
 import { gsap } from "gsap";
+import { SFX } from "../SoundManager";
 
 export class ContinuousSpinStrategy implements ISpinStrategy {
     // Move the properties specific to continuous spinning here
@@ -47,6 +48,9 @@ export class ContinuousSpinStrategy implements ISpinStrategy {
                 ease: reel.config.windup.ease,
                 onComplete: () => {
                     reel.state = "SPINNING";
+
+                    reel.game.sfx.play(SFX.ReelSpin)
+
                     gsap.to(this, {
                         speed: reel.config.spinSpeed,
                         duration: reel.config.spinAcceleration,
@@ -108,6 +112,9 @@ export class ContinuousSpinStrategy implements ISpinStrategy {
     private triggerLanding(reel: Reel): void {
         reel.state = "LANDING";
         reel.blurFilter.strengthY = 0;
+
+        reel.game.sfx.play(SFX.ReelLand1);
+
         const sortedSymbols = reel.getSorted();
 
         sortedSymbols.forEach((symbol, index) => {
@@ -122,6 +129,7 @@ export class ContinuousSpinStrategy implements ISpinStrategy {
                         if (this.resolveSpin) {
                             this.resolveSpin();
                             this.resolveSpin = null;
+                            reel.game.sfx.stop(SFX.ReelSpin);
                         }
                     }
                 }

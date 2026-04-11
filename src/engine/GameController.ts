@@ -7,6 +7,7 @@ import { FeatureRegistry } from './FeatureRegistry.ts';
 import type { ReelSymbol } from './ReelSymbol.ts';
 import gsap from "gsap"
 import precomputed_seeds from './precomputed_spins.json';
+import { SFX, SFXManager } from './SoundManager.ts';
 
 
 export class GameController {
@@ -21,6 +22,7 @@ export class GameController {
     private bg: Sprite
     private currentSeed: string | null = null
     private survey_group: string = ""
+    public sfx: SFXManager;
     constructor(app: Application, config: GameConfig) {
         this.app = app
         this.config = config;
@@ -48,9 +50,10 @@ export class GameController {
             timeline: null,
             betAmount: 60,
             win: 0,
+            sfxEnabled: true
         }
         this.ui = new UI(this.gameState, this.handleSpinPress)
-
+        this.sfx = new SFXManager(this.gameState);
         // for kexet
         // window.addEventListener('message', (event) => {
         //     if (event.data && event.data.type === 'SET_SEED') {
@@ -115,7 +118,9 @@ export class GameController {
         // Load the static JSON file into memory
         this.precomputedData = precomputed_seeds
 
+
         await this.loadAssets()
+        this.sfx.play(SFX.BackgroundTrack, { loop: true })
         this.buildGrid()
 
         window.parent.postMessage({ type: 'GAME_READY' }, '*');
@@ -127,11 +132,27 @@ export class GameController {
             Assets.add(s.asset)
             toLoad.push(s.asset.alias)
         })
+
         const extraAssets: Asset[] = [
             // this.config.ui.spinButton.asset,
             // this.config.background.asset,
         ]
         this.config.symbolBg && extraAssets.push(this.config.symbolBg)
+        const audioAssets = [
+            { alias: 'sfx_reel_spin', src: '/games/clashofreels/audio/spin.wav' },
+            { alias: 'sfx_reel_land1', src: '/games/clashofreels/audio/drop1.mp3' },
+            { alias: 'sfx_reel_land2', src: '/games/clashofreels/audio/drop2.mp3' },
+            { alias: 'sfx_reel_land3', src: '/games/clashofreels/audio/drop3.mp3' },
+            { alias: 'sfx_coin_fountain', src: '/games/clashofreels/audio/coins.mp3' },
+            { alias: 'sfx_bonus_mode', src: '/games/clashofreels/audio/melody.mp3' },
+            { alias: 'sfx_explosion', src: '/games/clashofreels/audio/explosion.wav' },
+            { alias: 'sfx_laser', src: '/games/clashofreels/audio/laser.mp3' },
+            { alias: 'sfx_background_track', src: '/games/clashofreels/audio/background_track.mp3' },
+        ];
+        audioAssets.forEach(a => {
+            Assets.add(a);
+            toLoad.push(a.alias);
+        });
         extraAssets.forEach(a => {
             Assets.add(a)
             toLoad.push(a.alias)
@@ -181,7 +202,7 @@ export class GameController {
         this.gameState.stage.addChild(this.gameContainer);
 
         for (let i = 0; i < this.config.cols; i++) {
-            const reel: Reel = new Reel(this.config, { left: i * (this.config.symbolWidth! + this.config.gapX), top: 0, }, i, this.stage, this.gameContainer)
+            const reel: Reel = new Reel(this.config, { left: i * (this.config.symbolWidth! + this.config.gapX), top: 0, }, i, this.stage, this.gameContainer, this)
             this.reels.push(reel)
             this.gameContainer.addChild(reel.container)
         }
@@ -275,7 +296,14 @@ export class GameController {
     }
 
     public async play() {
-        const timeline = await this.fetchTimeline()
+        let timeline: Timeline | undefined;
+
+        try {
+            timeline = await this.fetchTimeline()
+        }
+        catch (error) {
+            timeline = await this.fffetchTimeline()
+        }
         if (!timeline) {
             throw new Error("Something with the api didn't work");
         }

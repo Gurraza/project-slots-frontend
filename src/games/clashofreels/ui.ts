@@ -13,19 +13,20 @@ export function uiInit(UI: UI) {
             position: { left: 0, top: 0 },
             fullscreen: UI.config.isLandscape,
             zIndex: -2,
-            anchor: isLandscape ? 0 : { x: .22, y: 0 }
+            anchor: isLandscape ? 0 : { x: .22, y: 0 },
         })
     }
     else {
         UI.PlaceAsset({
             asset: {
                 src: "/games/clashofreels/background_portrait.png",
+                // src: "/games/clashofreels/animated_portriat_background.mp4",
                 alias: "bg"
             },
             position: { left: 0, top: 0 },
             fullscreen: true,
             zIndex: -2,
-            anchor: 0
+            anchor: 0,
         })
     }
 

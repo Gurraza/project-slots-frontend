@@ -1,5 +1,6 @@
 import type { GameController } from "../GameController";
 import type { Reel } from "../Reel";
+import { SFX } from "../SoundManager";
 import type { TimelineEvent } from "../types";
 import { Feature } from "./feature";
 
@@ -38,5 +39,6 @@ export class ExplodeAndCascadeFeature extends Feature {
             }
         })
         await Promise.all(promises)
+        this.game.sfx.play(SFX.Explosion)
     }
 }

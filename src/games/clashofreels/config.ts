@@ -49,7 +49,7 @@ const config: GameConfig = {
     rows: 7,
 
     symbolBg: {
-        src: "/games/clashofreels/Background_Cell.png",
+        src: "/games/clashofreels/flame_outline.png",
         alias: "cell_bg"
     },
     pathPrefix: "",
@@ -64,6 +64,7 @@ const config: GameConfig = {
         "BONUS_GAME_BEGIN",
         "BONUS_GAME_END",
         "SHOW_WIN_FEATURE",
+        "FLAME_OUTLINE_FEATURE"
     ],
     symbols: [
         {

@@ -3,6 +3,7 @@ import gsap from "gsap";
 import type { GameController } from "../GameController";
 import type { Point, TimelineEvent } from "../types";
 import { Feature } from "./feature";
+import { SFX } from "../SoundManager";
 
 interface TributeHarvestMeta {
     resourcesToSuck: Point[],
@@ -22,6 +23,7 @@ export class TributeHarvestFeature extends Feature {
         const sourceY = meta.source.y * config.symbolHeight! + config.symbolHeight! / 2;
 
         await this.game.getSymbol(meta.source.x, meta.source.y).play("land")
+        this.game.sfx.play(SFX.Laser)
         const promises = meta.resourcesToSuck.map(r => {
             const startX = r.x * config.symbolWidth! + config.symbolWidth! / 2;
             const startY = r.y * config.symbolHeight! + config.symbolHeight! / 2;

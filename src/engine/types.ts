@@ -65,6 +65,7 @@ export type GameState = {
     features: Feature[]
     betAmount: number
     win: number
+    sfxEnabled: boolean
 }
 export type SymbolVisualState =
     | "idle"

@@ -28,9 +28,10 @@ export class UI {
         anchor?: number | { x: number, y: number },
         width?: number,
         height?: number,
-        scale?: number
+        scale?: number,
+        muted?: boolean,
     }): Promise<Sprite> {
-        const { asset, fullscreen, action, position, zIndex, width, height, scale, anchor } = config
+        const { asset, fullscreen, action, position, zIndex, width, height, scale, anchor, muted = true } = config
 
         const texture: Texture = await Assets.load(asset)
         const sprite = new Sprite(texture)
@@ -41,7 +42,7 @@ export class UI {
         }
         if (asset.src.includes(".mp4")) {
             const videoSource = texture.source.resource as HTMLVideoElement
-            videoSource.muted = true
+            videoSource.muted = muted
             videoSource.loop = true
             videoSource.play().catch(err => {
                 console.warn("Video autoplay failed. User interaction may be required.", err)

@@ -7,6 +7,7 @@ import { gsap } from "gsap"
 import { DropInOutSpinStrategy } from "./strategies/DropInOutSpinStrategy";
 import { ContinuousSpinStrategy } from "./strategies/ContinuousSpinStrategy";
 import type { ISpinStrategy } from "./strategies/ISpinStrategy";
+import type { GameController } from "./GameController";
 
 gsap.registerPlugin(PixiPlugin)
 PixiPlugin.registerPIXI(PIXI)
@@ -32,9 +33,10 @@ export class Reel {
     public blurFilter: BlurFilter;
     public blurMultiplier: number
     public spinStrategy: ISpinStrategy;
-
-    constructor(config: GameConfig, position: Position, index: number, stage: Container, gameContainer: Container) {
+    public game: GameController;
+    constructor(config: GameConfig, position: Position, index: number, stage: Container, gameContainer: Container, game: GameController) {
         this.config = config
+        this.game = game
         this.container = new Container()
         // this.container.sortableChildren = true;
         const containerPos = getPos(position, config)
