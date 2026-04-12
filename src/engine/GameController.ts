@@ -146,6 +146,7 @@ export class GameController {
             { alias: 'sfx_coin_fountain', src: '/games/clashofreels/audio/coins.mp3' },
             { alias: 'sfx_bonus_mode', src: '/games/clashofreels/audio/melody.mp3' },
             { alias: 'sfx_explosion', src: '/games/clashofreels/audio/explosion.wav' },
+            { alias: 'sfx_explosion2', src: '/games/clashofreels/audio/explosion2.mp3' },
             { alias: 'sfx_laser', src: '/games/clashofreels/audio/laser.mp3' },
             { alias: 'sfx_background_track', src: '/games/clashofreels/audio/background_track.mp3' },
         ];

@@ -8,6 +8,7 @@ import { DropInOutSpinStrategy } from "./strategies/DropInOutSpinStrategy";
 import { ContinuousSpinStrategy } from "./strategies/ContinuousSpinStrategy";
 import type { ISpinStrategy } from "./strategies/ISpinStrategy";
 import type { GameController } from "./GameController";
+import { SFX } from "./SoundManager";
 
 gsap.registerPlugin(PixiPlugin)
 PixiPlugin.registerPIXI(PIXI)
@@ -177,6 +178,7 @@ export class Reel {
         });
 
         await Promise.all(promises)
+        this.game.sfx.play(SFX.Explosion2)
         // await new Promise(r => setTimeout(r, 1000))
         // 5. Combine new top symbols with surviving symbols for the final grid layout
         // New symbols drop to the top rows; surviving symbols keep their relative order

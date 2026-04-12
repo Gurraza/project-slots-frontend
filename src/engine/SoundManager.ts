@@ -12,6 +12,7 @@ export const SFX = {
     CoinFountain: 'sfx_coin_fountain',
     BonusMode: 'sfx_bonus_mode',
     Explosion: 'sfx_explosion',
+    Explosion2: 'sfx_explosion2',
     BackgroundTrack: "sfx_background_track",
     Laser: 'sfx_laser',
 } as const;
